@@ -637,13 +637,15 @@ void RoArmM2_infoFeedback() {
   // jsonInfoHttp["goalY"] = goalY;
   // jsonInfoHttp["goalZ"] = goalZ;
   // jsonInfoHttp["goalT"] = goalT;
-  jsonInfoHttp["torB"] = servoFeedback[BASE_SERVO_ID - 11].load;
-  jsonInfoHttp["torS"] = servoFeedback[SHOULDER_DRIVING_SERVO_ID - 11].load - servoFeedback[SHOULDER_DRIVEN_SERVO_ID - 11].load;
-  jsonInfoHttp["torE"] = servoFeedback[ELBOW_SERVO_ID - 11].load;
-  jsonInfoHttp["torH"] = servoFeedback[GRIPPER_SERVO_ID - 11].load;
+
+  //暂时不需要扭矩信息
+  // jsonInfoHttp["torB"] = servoFeedback[BASE_SERVO_ID - 11].load;
+  // jsonInfoHttp["torS"] = servoFeedback[SHOULDER_DRIVING_SERVO_ID - 11].load - servoFeedback[SHOULDER_DRIVEN_SERVO_ID - 11].load;
+  // jsonInfoHttp["torE"] = servoFeedback[ELBOW_SERVO_ID - 11].load;
+  // jsonInfoHttp["torH"] = servoFeedback[GRIPPER_SERVO_ID - 11].load;
 
   String getInfoJsonString;
-  serializeJson(jsonInfoHttp, getInfoJsonString);
+  serializeJson(jsonInfoHttp, getInfoJsonString);  //转换成字符串
   Serial.println(getInfoJsonString);
 }
 
@@ -686,6 +688,8 @@ void movePoint(double xA, double yA, double s, double *xB, double *yB) {
 // change this func and goalPosMove()
 // Coordinate Ctrl: input the coordinate point of the goal position to compute
 // the goalPos of every joints.
+
+//计算关节角度和坐标
 void RoArmM2_baseCoordinateCtrl(double inputX, double inputY, double inputZ, double inputT){
   if (EEMode == 0) { //笛卡尔坐标系
     cartesian_to_polar(inputX, inputY, &base_r, &BASE_JOINT_RAD); //将输入的X和Y坐标转换为基座关节的极坐标（半径和角度）。
@@ -808,6 +812,10 @@ void RoArmM2_allJointAbsCtrl(double inputBase, double inputShoulder, double inpu
 // |. . <-numStart
 // ----------------------
 // 0                  1 rateInput
+
+// (cos(rateInput*M_PI+M_PI)+1)/2：这部分是函数的核心，它基于rateInput值计算出一个平滑因子。首先，将rateInput乘以π并加上π，将输入范围从[0,1]映射到[π,2π]。这样，cos函数的输入范围就位于它的一个周期内，输出范围为[-1,1]。通过加1然后除以2，将输出范围调整为[0,1]，得到一个随rateInput增加而平滑从0变化到1的值。开始时增长较慢，然后加速，最后接近numEnd时又减慢
+
+//贝塞尔曲线
 double besselCtrl(double numStart, double numEnd, double rateInput){
   double numOut;
   numOut = (numEnd - numStart)*((cos(rateInput*M_PI+M_PI)+1)/2) + numStart;
@@ -817,6 +825,7 @@ double besselCtrl(double numStart, double numEnd, double rateInput){
 
 // use this function to get the max deltaSteps.
 // get the max offset between [goal] and [last] position.
+// 计算目标位置（goalX, goalY, goalZ, goalT）与最后位置（lastX, lastY, lastZ, lastT）之间的最大偏移量（deltaSteps）。
 double maxNumInArray(){
   if (EEMode == 0) {
     double deltaPos[4] = {abs(goalX - lastX),
@@ -829,7 +838,7 @@ double maxNumInArray(){
     }
     return maxVal;
   } else if (EEMode == 1) {
-    double deltaPos[4] = {abs(goalX - lastX),
+    double deltaPos[4] = {abs(goalX - lastX),  //位置误差
                           abs(goalY - lastY),
                           abs(goalZ - lastZ),
                           abs(goalT - lastT)*200};
@@ -917,6 +926,8 @@ void RoArmM2_singlePosAbsBesselCtrl(byte axiInput, double posInput, double input
 // initZ = l2A
 // initT = M_PI
 // default inputSpd = 0.36
+
+//贝塞尔曲线控制，平滑，可能会引起进程阻塞
 void RoArmM2_allPosAbsBesselCtrl(double inputX, double inputY, double inputZ, double inputT, double inputSpd){
   goalX = inputX;
   goalY = inputY;
@@ -1250,6 +1261,7 @@ void constantHandle() {
     static double bufferLastT;
 
     RoArmM2_baseCoordinateCtrl(goalX, goalY, goalZ, goalT);
+
     if (nanIK) {  //结算出的角度为非数值
       // IK failed
       goalX = bufferLastX;

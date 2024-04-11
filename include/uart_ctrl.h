@@ -38,7 +38,7 @@ void jsonCmdReceiveHandler(){
 												);break;
 	case CMD_XYZT_GOAL_CTRL: 
 												RoArmM2_allPosAbsBesselCtrl(
-												jsonCmdReceive["x"],
+											  jsonCmdReceive["x"],
 											  jsonCmdReceive["y"],
 											  jsonCmdReceive["z"],
 											  jsonCmdReceive["t"],

@@ -38,7 +38,7 @@ byte EEMode = 1;
 bool espNowRunBlockCmd = false;
 
 // run new json cmd
-bool runNewJsonCmd = false;
+bool runNewJsonCmd = true;
 
 
 #define BASE_JOINT     1
