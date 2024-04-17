@@ -1,4 +1,7 @@
 // <<<<<<<<<<=========PWM Servo===========>>>>>>>>>>
+#ifndef __PWMSERVOCTRL_H__
+#define __PWMSERVOCTRL_H__
+
 #include <ESP32_Servo.h>
 Servo pwmServo;
 
@@ -13,6 +16,8 @@ void pwmServoInit(){
 }
 
 
-void EOAT_ServoCtrl(int posInput){
+void GRAB_ServoCtrl(int posInput){
   pwmServo.write(posInput);
 }
+
+#endif

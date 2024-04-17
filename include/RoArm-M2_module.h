@@ -1,8 +1,8 @@
 #include "RoArm-M2_config.h"
 #include <math.h>
+#include "my_math.h"
+#include "pwmServoCtrl.h"
 #define ANG2DEG 0.017453292
-
-extern void EOAT_ServoCtrl(int posInput);
 
 // Instantiate a servo control object.
 SMS_STS st;
@@ -11,7 +11,8 @@ SMS_STS st;
 void serialCtrl();
 
 // Used to store the feedback information from the servo.
-struct ServoFeedback {
+struct ServoFeedback
+{
   bool status;
   int pos;
   int speed;
@@ -29,19 +30,20 @@ ServoFeedback servoFeedback[5];
 // [3] ELBOW_SERVO_ID
 // [4] GRIPPER_SERVO_ID
 
-
-
 // input the angle in radians, and it returns the number of servo steps.
-//把弧度映射到舵机转一圈4096之内
-double calculatePosByRad(double radInput) {
-  return round((radInput / (2 * M_PI)) * ARM_SERVO_POS_RANGE);  
+// 把弧度映射到舵机转一圈4096之内
+double calculatePosByRad(double radInput)
+{
+  return round((radInput / (2 * M_PI)) * ARM_SERVO_POS_RANGE);
 }
 
 // input the number of servo steps and the joint name
 // return the joint angle in radians.
-double calculateRadByFeedback(int inputSteps, int jointName) {
+double calculateRadByFeedback(int inputSteps, int jointName)
+{
   double getRad;
-  switch(jointName){
+  switch (jointName)
+  {
   case BASE_JOINT:
     getRad = -(inputSteps * 2 * M_PI / ARM_SERVO_POS_RANGE) + M_PI;
     break;
@@ -58,85 +60,112 @@ double calculateRadByFeedback(int inputSteps, int jointName) {
   return getRad;
 }
 
-
 // input the ID of the servo,
 // and get the information saved in servoFeedback[5].
 // returnType: false - return everything.
 //              true - return only when failed.
-bool getFeedback(byte servoID, bool returnType) {
-  if(st.FeedBack(servoID)!=-1) {
+bool getFeedback(byte servoID, bool returnType)
+{
+  if (st.FeedBack(servoID) != -1)
+  {
     servoFeedback[servoID - 11].status = true;
-  	servoFeedback[servoID - 11].pos = st.ReadPos(-1);
+    servoFeedback[servoID - 11].pos = st.ReadPos(-1);
     servoFeedback[servoID - 11].speed = st.ReadSpeed(-1);
     servoFeedback[servoID - 11].load = st.ReadLoad(-1);
     servoFeedback[servoID - 11].voltage = st.ReadVoltage(-1);
     servoFeedback[servoID - 11].current = st.ReadCurrent(-1);
     servoFeedback[servoID - 11].temper = st.ReadTemper(-1);
     servoFeedback[servoID - 11].mode = st.ReadMode(servoID);
-    if(!returnType){
-      if(InfoPrint == 1){Serial.print("Servo ID:");Serial.print(servoID);
-                    Serial.print(" status: checked. pos:");
-                    Serial.println(servoFeedback[servoID - 11].pos);}
+    if (!returnType)
+    {
+      if (InfoPrint == 1)
+      {
+        Serial.print("Servo ID:");
+        Serial.print(servoID);
+        Serial.print(" status: checked. pos:");
+        Serial.println(servoFeedback[servoID - 11].pos);
+      }
     }
-    else{
+    else
+    {
       return true;
     }
     return true;
-  } else{
+  }
+  else
+  {
     servoFeedback[servoID - 11].status = false;
-    if(InfoPrint == 1){Serial.print("Servo ID:");Serial.print(servoID);
-                  Serial.println(" status: failed.");}
-  	return false;
+    if (InfoPrint == 1)
+    {
+      Serial.print("Servo ID:");
+      Serial.print(servoID);
+      Serial.println(" status: failed.");
+    }
+    return false;
   }
 }
 
-
 // input the old servo ID and the new ID you want it to change to.
-bool changeID(byte oldID, byte newID) {
-  if(!getFeedback(oldID, true)) {
-    if(InfoPrint == 1) {Serial.print("change: ");Serial.print(oldID);Serial.println("failed");}
+bool changeID(byte oldID, byte newID)
+{
+  if (!getFeedback(oldID, true))
+  {
+    if (InfoPrint == 1)
+    {
+      Serial.print("change: ");
+      Serial.print(oldID);
+      Serial.println("failed");
+    }
     return false;
   }
-  else {
+  else
+  {
     st.unLockEprom(oldID);
     st.writeByte(oldID, SMS_STS_ID, newID);
     st.LockEprom(newID);
 
-    if(InfoPrint == 1) {Serial.print("change: ");Serial.print(oldID);Serial.println("succeed");}
+    if (InfoPrint == 1)
+    {
+      Serial.print("change: ");
+      Serial.print(oldID);
+      Serial.println("succeed");
+    }
     return true;
   }
 }
 
-
 // ctrl the torque lock of a servo.
 // input the servo ID and command: 1-on : produce torque.
 //                                 0-off: release torque.
-void servoTorqueCtrl(byte servoID, u8 enableCMD){
+void servoTorqueCtrl(byte servoID, u8 enableCMD)
+{
   st.EnableTorque(servoID, enableCMD);
 }
 
-
 // set the current position as the middle position of the servo.
-// input the ID of the servo that you wannna set middle position. 
-void setMiddlePos(byte InputID){
+// input the ID of the servo that you wannna set middle position.
+void setMiddlePos(byte InputID)
+{
   st.CalibrationOfs(InputID);
 }
 
-
 // to release all servos' torque for 10s.
-void emergencyStopProcessing() {
+void emergencyStopProcessing()
+{
   st.EnableTorque(254, 0);
   delay(10000);
   st.EnableTorque(254, 1);
 }
 
-
 // position check.
 // it will wait for the servo to move to the goal position.
-void waitMove2Goal(byte InputID, s16 goalPosition, s16 offSet){
-  while(servoFeedback[InputID - 11].pos < goalPosition - offSet || 
-        servoFeedback[InputID - 11].pos > goalPosition + offSet){
-    if (!servoFeedback[InputID - 11].status) {
+void waitMove2Goal(byte InputID, s16 goalPosition, s16 offSet)
+{
+  while (servoFeedback[InputID - 11].pos < goalPosition - offSet ||
+         servoFeedback[InputID - 11].pos > goalPosition + offSet)
+  {
+    if (!servoFeedback[InputID - 11].status)
+    {
       servoTorqueCtrl(254, 0);
       break;
     }
@@ -145,98 +174,149 @@ void waitMove2Goal(byte InputID, s16 goalPosition, s16 offSet){
   }
 }
 
-
 // initialize bus servo libraris and uart2ttl.
-void RoArmM2_servoInit(){
+void RoArmM2_servoInit()
+{
   Serial1.begin(1000000, SERIAL_8N1, S_RXD, S_TXD);
   st.pSerial = &Serial1;
-  while(!Serial1) {}
-  if(InfoPrint == 1){Serial.println("ServoCtrl init succeed.");}
+  while (!Serial1)
+  {
+  }
+  if (InfoPrint == 1)
+  {
+    Serial.println("ServoCtrl init succeed.");
+  }
 }
-
 
 // check the status of every servo,
 // if all status are ok, set the RoArmM2_initCheckSucceed as 1.
 // 0: used to init check, print everything.
 // 1: used to check while working, print when failed.
-void RoArmM2_initCheck(bool returnType) {
+void RoArmM2_initCheck(bool returnType)
+{
   RoArmM2_initCheckSucceed = false;
   RoArmM2_initCheckSucceed = getFeedback(BASE_SERVO_ID, true) &&
                              getFeedback(SHOULDER_DRIVING_SERVO_ID, true) &&
                              getFeedback(SHOULDER_DRIVEN_SERVO_ID, true) &&
                              getFeedback(ELBOW_SERVO_ID, true);
-  if(!returnType){
-    if(InfoPrint == 1 || RoArmM2_initCheckSucceed){Serial.println("All bus servos status checked.");}
-    else if(InfoPrint == 1 || !RoArmM2_initCheckSucceed){Serial.println("Bus servos status check: failed.");}
+  if (!returnType)
+  {
+    if (InfoPrint == 1 || RoArmM2_initCheckSucceed)
+    {
+      Serial.println("All bus servos status checked.");
+    }
+    else if (InfoPrint == 1 || !RoArmM2_initCheckSucceed)
+    {
+      Serial.println("Bus servos status check: failed.");
+    }
   }
-  else if(returnType && RoArmM2_initCheckSucceed){}
-  else if(returnType && !RoArmM2_initCheckSucceed){
-    if(InfoPrint == 1){Serial.println("Check failed.");}
+  else if (returnType && RoArmM2_initCheckSucceed)
+  {
+  }
+  else if (returnType && !RoArmM2_initCheckSucceed)
+  {
+    if (InfoPrint == 1)
+    {
+      Serial.println("Check failed.");
+    }
   }
 }
 
-
 // set all servos PID as the RoArm-M2 settings.
-bool setServosPID(byte InputID, byte InputP) {
-  if(!getFeedback(InputID, true)){return false;}
+bool setServosPID(byte InputID, byte InputP)
+{
+  if (!getFeedback(InputID, true))
+  {
+    return false;
+  }
   st.unLockEprom(InputID);
-  st.writeByte(InputID, ST_PID_P_ADDR, InputP); 
+  st.writeByte(InputID, ST_PID_P_ADDR, InputP);
   st.LockEprom(InputID);
   return true;
 }
 
-
 // move every joint to its init position.
 // it moves only when RoArmM2_initCheckSucceed is 1.
-void RoArmM2_moveInit() {
-  if(!RoArmM2_initCheckSucceed){
-    if(InfoPrint == 1){Serial.println("Init failed, skip moveInit.");}
+void RoArmM2_moveInit()
+{
+  if (!RoArmM2_initCheckSucceed)
+  {
+    if (InfoPrint == 1)
+    {
+      Serial.println("Init failed, skip moveInit.");
+    }
     return;
   }
-  else if(InfoPrint == 1){Serial.println("Stop moving to initPos.");}
+  else if (InfoPrint == 1)
+  {
+    Serial.println("Stop moving to initPos.");
+  }
 
   // move BASE_SERVO to middle position.
-  if(InfoPrint == 1){Serial.println("Moving BASE_JOINT to initPos.");}
+  if (InfoPrint == 1)
+  {
+    Serial.println("Moving BASE_JOINT to initPos.");
+  }
   st.WritePosEx(BASE_SERVO_ID, ARM_SERVO_BASE_INIT_POS_LEFT, ARM_SERVO_INIT_SPEED, ARM_SERVO_INIT_ACC);
 
   // release SHOULDER_DRIVEN_SERVO torque.
-  if(InfoPrint == 1){Serial.println("Unlock the torque of SHOULDER_DRIVEN_SERVO.");}
+  if (InfoPrint == 1)
+  {
+    Serial.println("Unlock the torque of SHOULDER_DRIVEN_SERVO.");
+  }
   servoTorqueCtrl(SHOULDER_DRIVEN_SERVO_ID, 0);
 
   // move SHOULDER_DRIVING_SERVO to middle position.
-  if(InfoPrint == 1){Serial.println("Moving SHOULDER_JOINT to initPos.");}
+  if (InfoPrint == 1)
+  {
+    Serial.println("Moving SHOULDER_JOINT to initPos.");
+  }
   st.WritePosEx(SHOULDER_DRIVING_SERVO_ID, ARM_SERVO_SHOULDER_INIT_POS, ARM_SERVO_INIT_SPEED, ARM_SERVO_INIT_ACC);
 
   // check SHOULDER_DRIVEING_SERVO position.
-  if(InfoPrint == 1){Serial.println("...");}
+  if (InfoPrint == 1)
+  {
+    Serial.println("...");
+  }
   waitMove2Goal(SHOULDER_DRIVING_SERVO_ID, ARM_SERVO_SHOULDER_INIT_POS, 30);
 
   // wait for the jitter to go away.
   delay(1200);
 
   // set the position as the middle of the SHOULDER_DRIVEN_SERVO.
-  if(InfoPrint == 1){Serial.println("Set this pos as the middle pos for SHOULDER_DRIVEN_SERVO.");}
+  if (InfoPrint == 1)
+  {
+    Serial.println("Set this pos as the middle pos for SHOULDER_DRIVEN_SERVO.");
+  }
   setMiddlePos(SHOULDER_DRIVEN_SERVO_ID);
 
   // SHOULDER_DRIVEN_SERVO starts producing torque.
-  if(InfoPrint == 1){Serial.println("SHOULDER_DRIVEN_SERVO starts producing torque.");}
+  if (InfoPrint == 1)
+  {
+    Serial.println("SHOULDER_DRIVEN_SERVO starts producing torque.");
+  }
   servoTorqueCtrl(SHOULDER_DRIVEN_SERVO_ID, 1);
   delay(10);
 
   // move ELBOW_SERVO to middle position.
-  if(InfoPrint == 1){Serial.println("Moving ELBOW_SERVO to middle position.");}
+  if (InfoPrint == 1)
+  {
+    Serial.println("Moving ELBOW_SERVO to middle position.");
+  }
   st.WritePosEx(ELBOW_SERVO_ID, ARM_SERVO_ELBOW_INIT_POS, ARM_SERVO_INIT_SPEED, ARM_SERVO_INIT_ACC);
   waitMove2Goal(ELBOW_SERVO_ID, ARM_SERVO_MIDDLE_POS, 20);
 
-  if(InfoPrint == 1){Serial.println("Moving GRIPPER_SERVO to middle position.");}
+  if (InfoPrint == 1)
+  {
+    Serial.println("Moving GRIPPER_SERVO to middle position.");
+  }
   st.WritePosEx(GRIPPER_SERVO_ID, ARM_SERVO_WRIST_INIT_POS, ARM_SERVO_INIT_SPEED, ARM_SERVO_INIT_ACC);
 
   delay(1000);
 
-  EOAT_ServoCtrl(ARM_SERVO_EOAT_INIT_POS);
+  GRAB_ServoCtrl(ARM_SERVO_GRAB_INIT_POS);
   delay(500);
 }
-
 
 // // // single joint ctrl for simple uses, base on radInput // // //
 
@@ -252,19 +332,20 @@ void RoArmM2_moveInit() {
 // 当returnType为0时，函数仅返回基座关节舵机的位置，并将其保存在goalPos[0]中，舵机不会移动。
 // 当returnType为1时，函数返回基座关节舵机的位置，并将其保存在goalPos[0]中，舵机会移动。
 // 具体来说，输入的角度(radInput)增加时，舵机会向左移动。
-int RoArmM2_baseJointCtrlRad(byte returnType, double radInput, u16 speedInput, u8 accInput) {
+int RoArmM2_baseJointCtrlRad(byte returnType, double radInput, u16 speedInput, u8 accInput)
+{
   radInput = -constrain(radInput, -M_PI, M_PI);
   s16 computePos = calculatePosByRad(radInput) + ARM_SERVO_BASE_INIT_POS_LEFT;
   goalPos[0] = computePos;
 
   // goalPos[0] = constrain(goalPos[0], ARM_SERVO_BASE_MIN_POS_LEFT,ARM_SERVO_BASE_MAX_POS_LEFT); //限幅
 
-  if(returnType){
+  if (returnType)
+  {
     st.WritePosEx(BASE_SERVO_ID, goalPos[0], speedInput, accInput);
   }
   return goalPos[0];
 }
-
 
 // use this function to compute the servo position to ctrl shoudlder joint.
 // returnType 0: only returns the shoulder joint servo position and save it to goalPos[1] and goalPos[2],
@@ -279,26 +360,28 @@ int RoArmM2_baseJointCtrlRad(byte returnType, double radInput, u16 speedInput, u
 // 当returnType为0时，函数仅返回肩关节舵机的位置，并将其保存在goalPos[1]和goalPos[2]中，舵机不会移动。
 // 当returnType为1时，函数返回肩关节舵机的位置，并将其保存在goalPos[1]和goalPos[2]中，舵机会移动。
 // 具体来说，输入的角度(radInput)增加时，肩关节会向前倾斜。
-int RoArmM2_shoulderJointCtrlRad(byte returnType, double radInput, u16 speedInput, u8 accInput) {
-  radInput = constrain(radInput, -M_PI/2, M_PI/2);
+int RoArmM2_shoulderJointCtrlRad(byte returnType, double radInput, u16 speedInput, u8 accInput)
+{
+  radInput = constrain(radInput, -M_PI / 2, M_PI / 2);
   s16 computePos = calculatePosByRad(radInput);
 
   goalPos[1] = ARM_SERVO_SHOULDER_INIT_POS + computePos;
   goalPos[2] = ARM_SERVO_SHOULDER_INIT_POS - computePos;
-  
-  
-  if(returnType == 1){
+
+  if (returnType == 1)
+  {
     st.WritePosEx(SHOULDER_DRIVING_SERVO_ID, goalPos[1], speedInput, accInput);
     st.WritePosEx(SHOULDER_DRIVEN_SERVO_ID, goalPos[2], speedInput, accInput);
   }
-  else if(returnType == SHOULDER_DRIVING_SERVO_ID){
+  else if (returnType == SHOULDER_DRIVING_SERVO_ID)
+  {
     return goalPos[1];
   }
-  else if(returnType == SHOULDER_DRIVEN_SERVO_ID){
+  else if (returnType == SHOULDER_DRIVEN_SERVO_ID)
+  {
     return goalPos[2];
   }
 }
-
 
 // use this function to compute the servo position to ctrl elbow joint.
 // returnType 0: only returns the elbow joint servo position and save it to goalPos[3],
@@ -313,23 +396,24 @@ int RoArmM2_shoulderJointCtrlRad(byte returnType, double radInput, u16 speedInpu
 // 当returnType为0时，函数仅返回肘关节舵机的位置，并将其保存在goalPos[3]中，舵机不会移动。
 // 当returnType为1时，函数返回肘关节舵机的位置，并将其保存在goalPos[3]中，舵机会移动。
 // 具体来说，输入的角度(angleInput)增加时，肘关节会向下移动。
-int RoArmM2_elbowJointCtrlRad(byte returnType, double radInput, u16 speedInput, u8 accInput) {
-  s16 computePos = calculatePosByRad(radInput) + ARM_SERVO_ELBOW_INIT_POS-1024;
+int RoArmM2_elbowJointCtrlRad(byte returnType, double radInput, u16 speedInput, u8 accInput)
+{
+  s16 computePos = calculatePosByRad(radInput) + ARM_SERVO_ELBOW_INIT_POS - 1024;
   goalPos[3] = constrain(computePos, 512, 3071);
 
-  if(returnType){
+  if (returnType)
+  {
     st.WritePosEx(ELBOW_SERVO_ID, goalPos[3], speedInput, accInput);
   }
   return goalPos[3];
 }
-
 
 // use this function to compute the servo position to ctrl grab/hand joint.
 // returnType 0: only returns the hand joint servo position and save it to goalPos[4],
 //               servo will NOT move.
 //            1: returns the hand joint servo position and save it to goalPos[4],
 //               servo moves.
-// ctrl type 0: status ctrl. - cmd 0: release 
+// ctrl type 0: status ctrl. - cmd 0: release
 //                                 1: grab
 //           1: position ctrl. - cmd: input angle in radius.
 // 这个函数用于计算控制夹持/手部关节的舵机位置。根据输入的控制类型(ctrl type)和命令(cmd)，可以选择是否让舵机移动。函数的返回类型(returnType)可以设定为0或1：
@@ -340,16 +424,17 @@ int RoArmM2_elbowJointCtrlRad(byte returnType, double radInput, u16 speedInput, 
 
 // 如果ctrl type为1，表示采用位置控制。此时，可以使用命令(cmd)来输入以弧度为单位的角度，控制手部关节的位置。
 // 请注意，具体的舵机位置计算逻辑和命令解析可能在代码的其他部分。
-int RoArmM2_handJointCtrlRad(byte returnType, double radInput, u16 speedInput, u8 accInput) {
+int RoArmM2_handJointCtrlRad(byte returnType, double radInput, u16 speedInput, u8 accInput)
+{
   s16 computePos = calculatePosByRad(radInput);
   goalPos[4] = constrain(computePos, 700, 3396);
 
-  if (returnType) {
+  if (returnType)
+  {
     st.WritePosEx(GRIPPER_SERVO_ID, goalPos[4], speedInput, accInput);
   }
   return goalPos[4];
 }
-
 
 // use this function to ctrl the max torque of base joint.
 // 这个函数用于控制基座关节的最大扭矩。函数接受一个inputTorque参数，表示所需的扭矩值。
@@ -357,16 +442,17 @@ int RoArmM2_handJointCtrlRad(byte returnType, double radInput, u16 speedInput, u
 // 解锁基座关节的EPROM，以便可以写入参数。
 // 使用st.writeWord函数将所需的扭矩值限制在预定义的最小和最大扭矩范围内，并写入基座关节的扭矩限制寄存器。
 // 锁定基座关节的EPROM，以保护参数不被修改。
-void RoArmM2_baseTorqueCtrl(int inputTorque) {
+void RoArmM2_baseTorqueCtrl(int inputTorque)
+{
   st.unLockEprom(BASE_SERVO_ID);
   st.writeWord(BASE_SERVO_ID, SMS_STS_TORQUE_LIMIT_L, constrain(inputTorque, ST_TORQUE_MIN, ST_TORQUE_MAX));
   st.LockEprom(BASE_SERVO_ID);
 }
 
-
 // use this function to ctrl the max torque of shoulder joint.
-//SHOULDER_DRIVING_SERVO_ID是驱动电机而SHOULDER_DRIVEN_SERVO_ID是从动舵机
-void RoArmM2_shoulderTorqueCtrl(int inputTorque) {
+// SHOULDER_DRIVING_SERVO_ID是驱动电机而SHOULDER_DRIVEN_SERVO_ID是从动舵机
+void RoArmM2_shoulderTorqueCtrl(int inputTorque)
+{
   st.unLockEprom(SHOULDER_DRIVING_SERVO_ID);
   st.writeWord(SHOULDER_DRIVING_SERVO_ID, SMS_STS_TORQUE_LIMIT_L, constrain(inputTorque, ST_TORQUE_MIN, ST_TORQUE_MAX));
   st.LockEprom(SHOULDER_DRIVING_SERVO_ID);
@@ -376,26 +462,25 @@ void RoArmM2_shoulderTorqueCtrl(int inputTorque) {
   st.LockEprom(SHOULDER_DRIVEN_SERVO_ID);
 }
 
-
 // use this function to ctrl the max torque of elbow joint.
-void RoArmM2_elbowTorqueCtrl(int inputTorque) {
+void RoArmM2_elbowTorqueCtrl(int inputTorque)
+{
   st.unLockEprom(ELBOW_SERVO_ID);
   st.writeWord(ELBOW_SERVO_ID, SMS_STS_TORQUE_LIMIT_L, constrain(inputTorque, ST_TORQUE_MIN, ST_TORQUE_MAX));
   st.LockEprom(ELBOW_SERVO_ID);
 }
 
-
 // use this function to ctrl the max torque of hand joint.
-void RoArmM2_handTorqueCtrl(int inputTorque) {
+void RoArmM2_handTorqueCtrl(int inputTorque)
+{
   st.unLockEprom(GRIPPER_SERVO_ID);
   st.writeWord(GRIPPER_SERVO_ID, SMS_STS_TORQUE_LIMIT_L, constrain(inputTorque, ST_TORQUE_MIN, ST_TORQUE_MAX));
   st.LockEprom(GRIPPER_SERVO_ID);
 }
 
-
 // dynamic external force adaptation.
 // mode: 0 - stop: reset every limit torque to 1000.
-//       1 - start: set the joint limit torque. 
+//       1 - start: set the joint limit torque.
 // b, s, e, h = bassJoint, shoulderJoint, elbowJoint, handJoint
 // example:
 // starts. input the limit torque of every joint.
@@ -413,13 +498,17 @@ void RoArmM2_handTorqueCtrl(int inputTorque) {
 // 如果inputM为1，表示启动模式，将每个关节的限制扭矩设置为相应的输入值。
 // 具体实现中，函数会调用其他函数来控制每个关节的限制扭矩。如果是停止模式，会将限制扭矩设为最大值；如果是启动模式，会将限制扭矩设置为输入值。
 // 通过调用这个函数并提供相应的参数，可以实现动态外部力适应。
-void RoArmM2_dynamicAdaptation(byte inputM, int inputB, int inputS, int inputE, int inputH) {
-  if (inputM == 0) {
+void RoArmM2_dynamicAdaptation(byte inputM, int inputB, int inputS, int inputE, int inputH)
+{
+  if (inputM == 0)
+  {
     RoArmM2_baseTorqueCtrl(ST_TORQUE_MAX);
     RoArmM2_shoulderTorqueCtrl(ST_TORQUE_MAX);
     RoArmM2_elbowTorqueCtrl(ST_TORQUE_MAX);
     RoArmM2_handTorqueCtrl(ST_TORQUE_MAX);
-  } else if (inputM == 1) {
+  }
+  else if (inputM == 1)
+  {
     RoArmM2_baseTorqueCtrl(inputB);
     RoArmM2_shoulderTorqueCtrl(inputS);
     RoArmM2_elbowTorqueCtrl(inputE);
@@ -427,15 +516,15 @@ void RoArmM2_dynamicAdaptation(byte inputM, int inputB, int inputS, int inputE, 
   }
 }
 
-
 // this function uses relative radInput to set a new X+ axis.
-// dirInput: 
+// dirInput:
 //              0
 //              X+
 //        -90 - ^ - 90
 //              |
-//          -180 180 
-void setNewAxisX(double angleInput) {
+//          -180 180
+void setNewAxisX(double angleInput)
+{
   double radInput = (angleInput / 180) * M_PI;
   RoArmM2_shoulderJointCtrlRad(1, 0, 500, 20);
   waitMove2Goal(SHOULDER_DRIVING_SERVO_ID, goalPos[1], 20);
@@ -458,7 +547,6 @@ void setNewAxisX(double angleInput) {
   delay(5);
 }
 
-
 // Simple Linkage IK:
 // input the position of the end and return angle.
 //   O----O
@@ -476,16 +564,12 @@ void setNewAxisX(double angleInput) {
 // ---------------------------------------------------
 // alpha, beta > 0 ; delta <= 0 ; aIn, bIn > 0
 
-
-
-
 // 若bIn接近于零，则表示两杆直接相连。在该分支中，执行以下操作：
 
 // 根据三角形余弦定理，计算角度psi，即杆A和杆B之间的夹角。
 // 根据角度psi，计算角度alpha，即杆A与水平方向的夹角。
 // 根据三角形余弦定理，计算角度omega，即杆A和杆B之间的夹角。
 // 根据角度psi和角度omega，计算角度beta，即杆B与杆A的夹角。
-
 
 // 计算连接点B到原点的距离的平方，并存储在变量L2C中。
 // 计算连接点B到原点的距离，并存储在变量LC中。
@@ -500,15 +584,19 @@ void setNewAxisX(double angleInput) {
 // 将角度beta赋值给ELBOW_JOINT_RAD，即肘部关节角度。
 // 将角度delta赋值给EOAT_JOINT_RAD_BUFFER，即末端执行器关节角度的缓冲值。
 // 最后，检查计算得到的角度是否为非数值（NaN），若存在非数值则将nanIK标记为true。
-void simpleLinkageIkRad(double LA, double LB, double aIn, double bIn) {
+void simpleLinkageIkRad(double LA, double LB, double aIn, double bIn)
+{
   double psi, alpha, omega, beta, L2C, LC, lambda, delta;
 
-  if (fabs(bIn) < 1e-6) {// 首先，根据bIn的值是否接近于零，判断是处于两杆直接相连的情况还是需要考虑连接点B的情况。
+  if (fabs(bIn) < 1e-6)
+  { // 首先，根据bIn的值是否接近于零，判断是处于两杆直接相连的情况还是需要考虑连接点B的情况。
     psi = acos((LA * LA + aIn * aIn - LB * LB) / (2 * LA * aIn)) + t2rad;
     alpha = M_PI / 2.0 - psi;
     omega = acos((aIn * aIn + LB * LB - LA * LA) / (2 * aIn * LB));
     beta = psi + omega - t3rad;
-  } else {// 若bIn不接近于零，则需要考虑连接点B的位置。在该分支中，执行以下操作：
+  }
+  else
+  { // 若bIn不接近于零，则需要考虑连接点B的位置。在该分支中，执行以下操作：
     L2C = aIn * aIn + bIn * bIn;
     LC = sqrt(L2C);
     lambda = atan2(bIn, aIn);
@@ -521,12 +609,11 @@ void simpleLinkageIkRad(double LA, double LB, double aIn, double bIn) {
   delta = M_PI / 2.0 - alpha - beta;
 
   SHOULDER_JOINT_RAD = alpha;
-  ELBOW_JOINT_RAD    = beta;
-  EOAT_JOINT_RAD_BUFFER  = delta;
+  ELBOW_JOINT_RAD = beta;
+  EOAT_JOINT_RAD_BUFFER = delta;
 
   nanIK = isnan(alpha) || isnan(beta) || isnan(delta);
 }
-
 
 // AI prompt:
 // *** this function is written with AI. ***
@@ -537,18 +624,18 @@ void simpleLinkageIkRad(double LA, double LB, double aIn, double bIn) {
 // '''
 
 // AI prompt:
-// I need a C language function. In a 2D Cartesian coordinate system, 
+// I need a C language function. In a 2D Cartesian coordinate system,
 // input a coordinate point (x, y). The function should return two values:
 
 // The distance from this coordinate point to the origin of the coordinate system.
-// The angle, in radians, between the line connecting this point and the origin 
-// of the coordinate system and the positive direction of the x-axis. 
+// The angle, in radians, between the line connecting this point and the origin
+// of the coordinate system and the positive direction of the x-axis.
 // The angle should be in the range (-π, π).
-void cartesian_to_polar(double x, double y, double* r, double* theta) {
-    *r = sqrt(x * x + y * y);
-    *theta = atan2(y, x);
+void cartesian_to_polar(double x, double y, double *r, double *theta)
+{
+  *r = sqrt(x * x + y * y);
+  *theta = atan2(y, x);
 }
-
 
 // AI prompt:
 // *** this function is written with AI. ***
@@ -560,17 +647,19 @@ void cartesian_to_polar(double x, double y, double* r, double* theta) {
 // use this two functions to compute the position of coordinate point
 // by inputing the jointRad.
 // 这个函数用于将极坐标转换为直角坐标
-void polarToCartesian(double r, double theta, double &x, double &y) {
+void polarToCartesian(double r, double theta, double &x, double &y)
+{
   x = r * cos(theta);
   y = r * sin(theta);
 }
 
-
 // this function is used to compute the position of the end point.
 // input the angle of every joint in radius.
 // compute the positon and save it to lastXYZ by default.
-void RoArmM2_computePosbyJointRad(double base_joint_rad, double shoulder_joint_rad, double elbow_joint_rad, double hand_joint_rad) {
-  if (EEMode == 0) {
+void RoArmM2_computePosbyJointRad(double base_joint_rad, double shoulder_joint_rad, double elbow_joint_rad, double hand_joint_rad)
+{
+  if (EEMode == 0)
+  {
     // the end of the arm.
     double r_ee, x_ee, y_ee, z_ee;
 
@@ -582,7 +671,7 @@ void RoArmM2_computePosbyJointRad(double base_joint_rad, double shoulder_joint_r
 
     r_ee = aOut + cOut;
     z_ee = bOut + dOut;
-    
+
     polarToCartesian(r_ee, base_joint_rad, eOut, fOut);
     x_ee = eOut;
     y_ee = fOut;
@@ -591,13 +680,14 @@ void RoArmM2_computePosbyJointRad(double base_joint_rad, double shoulder_joint_r
     lastY = y_ee;
     lastZ = z_ee;
   }
-  else if (EEMode == 1) {
-    double aOut, bOut,   cOut, dOut,   eOut, fOut,   gOut, hOut;
+  else if (EEMode == 1)
+  {
+    double aOut, bOut, cOut, dOut, eOut, fOut, gOut, hOut;
     double r_ee, z_ee;
 
     polarToCartesian(l2, ((M_PI / 2) - (shoulder_joint_rad + t2rad)), aOut, bOut);
     polarToCartesian(l3, ((M_PI / 2) - (elbow_joint_rad + shoulder_joint_rad + t3rad)), cOut, dOut);
-    polarToCartesian(lE, -((hand_joint_rad + tErad) - M_PI - (M_PI/2 - shoulder_joint_rad - elbow_joint_rad)), eOut, fOut);
+    polarToCartesian(lE, -((hand_joint_rad + tErad) - M_PI - (M_PI / 2 - shoulder_joint_rad - elbow_joint_rad)), eOut, fOut);
 
     r_ee = aOut + cOut + eOut;
     z_ee = bOut + dOut + fOut;
@@ -611,10 +701,10 @@ void RoArmM2_computePosbyJointRad(double base_joint_rad, double shoulder_joint_r
   }
 }
 
-
 // EEmode funcs change here.
 // get position by servo feedback.
-void RoArmM2_getPosByServoFeedback() {
+void RoArmM2_getPosByServoFeedback()
+{
   getFeedback(BASE_SERVO_ID, true);
   getFeedback(SHOULDER_DRIVING_SERVO_ID, true);
   getFeedback(ELBOW_SERVO_ID, true);
@@ -626,14 +716,15 @@ void RoArmM2_getPosByServoFeedback() {
   radG = calculateRadByFeedback(servoFeedback[GRIPPER_SERVO_ID - 11].pos, EOAT_JOINT);
 
   RoArmM2_computePosbyJointRad(radB, radS, radE, radG);
-  if (EEMode == 0) {
+  if (EEMode == 0)
+  {
     lastT = radG;
   }
 }
 
-
 // feedback info in json.
-void RoArmM2_infoFeedback() {
+void RoArmM2_infoFeedback()
+{
   jsonInfoHttp.clear();
   jsonInfoHttp["T"] = 1051;
   jsonInfoHttp["x"] = lastX;
@@ -648,17 +739,16 @@ void RoArmM2_infoFeedback() {
   // jsonInfoHttp["goalZ"] = goalZ;
   // jsonInfoHttp["goalT"] = goalT;
 
-  //暂时不需要扭矩信息
-  // jsonInfoHttp["torB"] = servoFeedback[BASE_SERVO_ID - 11].load;
-  // jsonInfoHttp["torS"] = servoFeedback[SHOULDER_DRIVING_SERVO_ID - 11].load - servoFeedback[SHOULDER_DRIVEN_SERVO_ID - 11].load;
-  // jsonInfoHttp["torE"] = servoFeedback[ELBOW_SERVO_ID - 11].load;
-  // jsonInfoHttp["torH"] = servoFeedback[GRIPPER_SERVO_ID - 11].load;
+  // 暂时不需要扭矩信息
+  //  jsonInfoHttp["torB"] = servoFeedback[BASE_SERVO_ID - 11].load;
+  //  jsonInfoHttp["torS"] = servoFeedback[SHOULDER_DRIVING_SERVO_ID - 11].load - servoFeedback[SHOULDER_DRIVEN_SERVO_ID - 11].load;
+  //  jsonInfoHttp["torE"] = servoFeedback[ELBOW_SERVO_ID - 11].load;
+  //  jsonInfoHttp["torH"] = servoFeedback[GRIPPER_SERVO_ID - 11].load;
 
   String getInfoJsonString;
-  serializeJson(jsonInfoHttp, getInfoJsonString);  //转换成字符串
+  serializeJson(jsonInfoHttp, getInfoJsonString); // 转换成字符串
   Serial.println(getInfoJsonString);
 }
-
 
 // AI prompt:
 // 在平面直角坐标系中，有一点A，输入点A的X,Y坐标和角度参数theta(弧度制)，点A绕直角坐标系原点
@@ -666,79 +756,94 @@ void RoArmM2_infoFeedback() {
 // AI prompt:
 // In a 2D Cartesian coordinate system, there is a point A.
 // Input the X and Y coordinates of point A and an angle parameter theta (in radians).
-// Point A rotates counterclockwise around the origin of the Cartesian coordinate 
+// Point A rotates counterclockwise around the origin of the Cartesian coordinate
 // system by an angle of theta to become point B. Return the XY coordinates of point B.
 // I need a C language function.
-void rotatePoint(double theta, double *xB, double *yB) {
+void rotatePoint(double theta, double *xB, double *yB)
+{
   double alpha = tErad + theta;
 
   *xB = lE * cos(alpha);
   *yB = lE * sin(alpha);
 }
 
-
 // AI prompt:
 // 在平面直角坐标系种，有一点A，输入点A的X,Y坐标值，输入一个距离参数S，
 // 点A向原点方向移动S作为点B，返回点B的坐标值。我需要C语言的函数。
-void movePoint(double xA, double yA, double s, double *xB, double *yB) {
-  double distance = sqrt(pow(xA, 2) + pow(yA, 2));    //勾股定理（sqrt(pow(xA, 2) + pow(yA, 2))）计算出点A到原点的直线距离 distance
-  if(distance - s <= 1e-6) {  //距离原点很小，点B直接设置为原点
-    *xB = 0; 
+void movePoint(double xA, double yA, double s, double *xB, double *yB)
+{
+  double distance = sqrt(pow(xA, 2) + pow(yA, 2)); // 勾股定理（sqrt(pow(xA, 2) + pow(yA, 2))）计算出点A到原点的直线距离 distance
+  if (distance - s <= 1e-6)
+  { // 距离原点很小，点B直接设置为原点
+    *xB = 0;
     *yB = 0;
   }
-  else {             //采用比例法一步步靠近
+  else
+  { // 采用比例法一步步靠近
     double ratio = (distance - s) / distance;
     *xB = xA * ratio;
     *yB = yA * ratio;
   }
 }
 
-
 // ---===< Muti-assembly IK config here >===---
 // change this func and goalPosMove()
 // Coordinate Ctrl: input the coordinate point of the goal position to compute
 // the goalPos of every joints.
 
-//计算关节角度和坐标
-void RoArmM2_baseCoordinateCtrl(double inputX, double inputY, double inputZ, double inputT){
-  if (EEMode == 0) {
-    cartesian_to_polar(inputX, inputY, &base_r, &BASE_JOINT_RAD); //将输入的X和Y坐标转换为基座关节的极坐标（半径和角度）。
-    simpleLinkageIkRad(l2, l3, base_r, inputZ); //根据输入的半径和Z坐标，计算并控制基座关节的角度。
+// 计算关节角度和坐标
+void RoArmM2_baseCoordinateCtrl(double inputX, double inputY, double inputZ, double inputT)
+{
+  if (EEMode == 0)
+  {
+    cartesian_to_polar(inputX, inputY, &base_r, &BASE_JOINT_RAD); // 将输入的X和Y坐标转换为基座关节的极坐标（半径和角度）。
+    simpleLinkageIkRad(l2, l3, base_r, inputZ);                   // 根据输入的半径和Z坐标，计算并控制基座关节的角度。
     // RoArmM2_handJointCtrlRad(0, inputT, 0, 0); //控制手腕关节的角度，其中inputT为目标角度。
-    RoArmM2_handJointCtrlRad(0, M_PI*3/2-SHOULDER_JOINT_RAD-ELBOW_JOINT_RAD, 0, 0);
+    RoArmM2_handJointCtrlRad(0, M_PI * 3 / 2 - SHOULDER_JOINT_RAD - ELBOW_JOINT_RAD, 0, 0);
   }
-  else if (EEMode == 1) { 
-    rotatePoint((inputT - M_PI), &delta_x, &delta_y); //将输入的T坐标减去π，得到旋转角度变量。根据旋转角度变量，计算出偏移量delta_x和delta_y。
-    movePoint(inputX, inputY, delta_x, &beta_x, &beta_y); //根据输入的X、Y坐标和偏移量，计算出新的坐标beta_x和beta_y。
-    cartesian_to_polar(beta_x, beta_y, &base_r, &BASE_JOINT_RAD);//将计算得到的beta_x和beta_y转换为基座关节的极坐标（半径和角度）。
-    simpleLinkageIkRad(l2, l3, base_r, inputZ + delta_y); //根据输入的半径和Z坐标偏移量，计算并控制基座关节的角度。
-    EOAT_JOINT_RAD = EOAT_JOINT_RAD_BUFFER + inputT; //更新末端执行器关节的角度，将其与缓冲值EOAT_JOINT_RAD_BUFFER相加，并将结果赋值给EOAT_JOINT_RAD。
+  else if (EEMode == 1)
+  {
+    rotatePoint((inputT - M_PI), &delta_x, &delta_y);             // 将输入的T坐标减去π，得到旋转角度变量。根据旋转角度变量，计算出偏移量delta_x和delta_y。
+    movePoint(inputX, inputY, delta_x, &beta_x, &beta_y);         // 根据输入的X、Y坐标和偏移量，计算出新的坐标beta_x和beta_y。
+    cartesian_to_polar(beta_x, beta_y, &base_r, &BASE_JOINT_RAD); // 将计算得到的beta_x和beta_y转换为基座关节的极坐标（半径和角度）。
+    simpleLinkageIkRad(l2, l3, base_r, inputZ + delta_y);         // 根据输入的半径和Z坐标偏移量，计算并控制基座关节的角度。
+    EOAT_JOINT_RAD = EOAT_JOINT_RAD_BUFFER + inputT;              // 更新末端执行器关节的角度，将其与缓冲值EOAT_JOINT_RAD_BUFFER相加，并将结果赋值给EOAT_JOINT_RAD。
   }
 }
 
+void My_RoArmM2_baseCoordinateCtrl(double inputX, double inputY, double inputZ)
+{
+  if (EEMode == 0)
+  {
+    cartesian_to_polar(inputX, inputY, &base_r, &BASE_JOINT_RAD); // 将输入的X和Y坐标转换为基座关节的极坐标（半径和角度）。
+    simpleLinkageIkRad(l2, l3, base_r, inputZ);                   // 根据输入的半径和Z坐标，计算并控制基座关节的角度。
+    RoArmM2_handJointCtrlRad(0, 4.71238898038- SHOULDER_JOINT_RAD - ELBOW_JOINT_RAD, 0, 0);  //M_PI * 3 / 2 - SHOULDER_JOINT_RAD - ELBOW_JOINT_RAD
+  }
+}
 
 // update last position for later use.
-void RoArmM2_lastPosUpdate(){
+void RoArmM2_lastPosUpdate()
+{
   lastX = goalX;
   lastY = goalY;
   lastZ = goalZ;
   lastT = goalT;
 }
 
-
 // use jointCtrlRad functions to compute goalPos for every servo,
 // then use this function to move the servos.
 // cuz the functions like baseCoordinateCtrl is not gonna make servos move.
-void RoArmM2_goalPosMove(){
+void RoArmM2_goalPosMove()
+{
   RoArmM2_baseJointCtrlRad(0, BASE_JOINT_RAD, 0, 0);
   RoArmM2_shoulderJointCtrlRad(0, SHOULDER_JOINT_RAD, 0, 0);
   RoArmM2_elbowJointCtrlRad(0, ELBOW_JOINT_RAD, 0, 0);
-  if (EEMode == 1) {
+  if (EEMode == 1)
+  {
     RoArmM2_handJointCtrlRad(0, EOAT_JOINT_RAD, 0, 0);
   }
   st.SyncWritePosEx(servoID, 5, goalPos, moveSpd, moveAcc);
 }
-
 
 // ctrl a single joint abs angle(rad).
 // joint: 1-BASE_JOINT + ->left
@@ -748,8 +853,10 @@ void RoArmM2_goalPosMove(){
 // inputRad: input the goal angle in radius of the joint.
 // inputSpd: move speed, steps/second.
 // inputAcc: acceleration, steps/second^2.
-void RoArmM2_singleJointAbsCtrl(byte jointInput, double inputRad, u16 inputSpd, u8 inputAcc){
-  switch(jointInput){
+void RoArmM2_singleJointAbsCtrl(byte jointInput, double inputRad, u16 inputSpd, u8 inputAcc)
+{
+  switch (jointInput)
+  {
   case BASE_JOINT:
     RoArmM2_baseJointCtrlRad(1, inputRad, inputSpd, inputAcc);
     BASE_JOINT_RAD = inputRad;
@@ -770,7 +877,6 @@ void RoArmM2_singleJointAbsCtrl(byte jointInput, double inputRad, u16 inputSpd, 
   RoArmM2_computePosbyJointRad(BASE_JOINT_RAD, SHOULDER_JOINT_RAD, ELBOW_JOINT_RAD, EOAT_JOINT_RAD);
 }
 
-
 // ctrl all joints together.
 // when all joints in initPos(middle position), it looks like below.
 //    -------L3------------O==L2B===
@@ -789,34 +895,36 @@ void RoArmM2_singleJointAbsCtrl(byte jointInput, double inputRad, u16 inputSpd, 
 //
 //
 //    -------L3------------O==L2B==O  <- BASE_JOINT
-//                         ^       
-//   <---X+--Z+            |       
-//           |       ELBOW_JOINT   
+//                         ^
+//   <---X+--Z+            |
+//           |       ELBOW_JOINT
 //           Y+
 //           |
 //           v
-//基座关节的目标角度、肩关节的目标角度、肘关节的目标角度、末端执行器关节的目标角度、移动速度和加速度
-void RoArmM2_allJointAbsCtrl(double inputBase, double inputShoulder, double inputElbow, double inputHand, u16 inputSpd, u8 inputAcc){
+// 基座关节的目标角度、肩关节的目标角度、肘关节的目标角度、末端执行器关节的目标角度、移动速度和加速度
+void RoArmM2_allJointAbsCtrl(double inputBase, double inputShoulder, double inputElbow, double inputHand, u16 inputSpd, u8 inputAcc)
+{
   RoArmM2_baseJointCtrlRad(0, inputBase, inputSpd, inputAcc);
   RoArmM2_shoulderJointCtrlRad(0, inputShoulder, inputSpd, inputAcc);
   RoArmM2_elbowJointCtrlRad(0, inputElbow, inputSpd, inputAcc);
   RoArmM2_handJointCtrlRad(0, inputHand, inputSpd, inputAcc);
-  for (int i = 0;i < 5;i++) {
+  for (int i = 0; i < 5; i++)
+  {
     moveSpd[i] = inputSpd;
     moveAcc[i] = inputAcc;
   }
-  st.SyncWritePosEx(servoID, 5, goalPos, moveSpd, moveAcc);//批量舵机操作
-  for (int i = 0;i < 5;i++) {
+  st.SyncWritePosEx(servoID, 5, goalPos, moveSpd, moveAcc); // 批量舵机操作
+  for (int i = 0; i < 5; i++)
+  {
     moveSpd[i] = 0;
     moveAcc[i] = 0;
   }
 }
 
-
 // ctrl the movement in a smooth way.
 // |                 ..  <-numEnd
 // |             .    |
-// |           .    
+// |           .
 // |         .        |
 // |        .
 // |      .           |
@@ -826,44 +934,50 @@ void RoArmM2_allJointAbsCtrl(double inputBase, double inputShoulder, double inpu
 
 // (cos(rateInput*M_PI+M_PI)+1)/2：这部分是函数的核心，它基于rateInput值计算出一个平滑因子。首先，将rateInput乘以π并加上π，将输入范围从[0,1]映射到[π,2π]。这样，cos函数的输入范围就位于它的一个周期内，输出范围为[-1,1]。通过加1然后除以2，将输出范围调整为[0,1]，得到一个随rateInput增加而平滑从0变化到1的值。开始时增长较慢，然后加速，最后接近numEnd时又减慢
 
-//贝塞尔曲线
-double besselCtrl(double numStart, double numEnd, double rateInput){
+// 贝塞尔曲线
+double besselCtrl(double numStart, double numEnd, double rateInput)
+{
   double numOut;
-  numOut = (numEnd - numStart)*((cos(rateInput*M_PI+M_PI)+1)/2) + numStart;
+  numOut = (numEnd - numStart) * ((cos(rateInput * M_PI + M_PI) + 1) / 2) + numStart;
   return numOut;
 }
-   
 
 // use this function to get the max deltaSteps.
 // get the max offset between [goal] and [last] position.
 // 计算目标位置（goalX, goalY, goalZ, goalT）与最后位置（lastX, lastY, lastZ, lastT）之间的最大偏移量（deltaSteps）。
-double maxNumInArray(){
-  if (EEMode == 0) {
+double maxNumInArray()
+{
+  if (EEMode == 0)
+  {
     double deltaPos[4] = {abs(goalX - lastX),
                           abs(goalY - lastY),
                           abs(goalZ - lastZ),
-                          abs(goalT - lastT)*10};
+                          abs(goalT - lastT) * 10};
     double maxVal = deltaPos[0];
-    for(int i = 0; i < (sizeof(deltaPos) / sizeof(deltaPos[0])); i++){
-      maxVal = max(deltaPos[i],maxVal);
+    for (int i = 0; i < (sizeof(deltaPos) / sizeof(deltaPos[0])); i++)
+    {
+      maxVal = max(deltaPos[i], maxVal);
     }
     return maxVal;
-  } else if (EEMode == 1) {
-    double deltaPos[4] = {abs(goalX - lastX),  //位置误差
+  }
+  else if (EEMode == 1)
+  {
+    double deltaPos[4] = {abs(goalX - lastX), // 位置误差
                           abs(goalY - lastY),
                           abs(goalZ - lastZ),
-                          abs(goalT - lastT)*200};
+                          abs(goalT - lastT) * 200};
     double maxVal = deltaPos[0];
-    for(int i = 0; i < (sizeof(deltaPos) / sizeof(deltaPos[0])); i++){
-      maxVal = max(deltaPos[i],maxVal);
+    for (int i = 0; i < (sizeof(deltaPos) / sizeof(deltaPos[0])); i++)
+    {
+      maxVal = max(deltaPos[i], maxVal);
     }
     return maxVal;
   }
 }
 
-
 // use this function to move the end of the arm to the goal position.
-void RoArmM2_movePosGoalfromLast(float spdInput){
+void RoArmM2_movePosGoalfromLast(float spdInput)
+{
   double deltaSteps = maxNumInArray();
 
   double bufferX;
@@ -876,13 +990,15 @@ void RoArmM2_movePosGoalfromLast(float spdInput){
   static double bufferLastZ;
   static double bufferLastT;
 
-  for(double i=0;i<=1;i+=(1/(deltaSteps*1))*spdInput){
+  for (double i = 0; i <= 1; i += (1 / (deltaSteps * 1)) * spdInput)
+  {
     bufferX = besselCtrl(lastX, goalX, i);
     bufferY = besselCtrl(lastY, goalY, i);
     bufferZ = besselCtrl(lastZ, goalZ, i);
     bufferT = besselCtrl(lastT, goalT, i);
     RoArmM2_baseCoordinateCtrl(bufferX, bufferY, bufferZ, bufferT);
-    if(nanIK){
+    if (nanIK)
+    {
       // IK failed
       goalX = bufferLastX;
       goalY = bufferLastY;
@@ -893,7 +1009,8 @@ void RoArmM2_movePosGoalfromLast(float spdInput){
       RoArmM2_lastPosUpdate();
       return;
     }
-    else{
+    else
+    {
       // IK succeed.
       bufferLastX = bufferX;
       bufferLastY = bufferY;
@@ -908,6 +1025,49 @@ void RoArmM2_movePosGoalfromLast(float spdInput){
   RoArmM2_lastPosUpdate();
 }
 
+void My_RoArmM2_movePosGoalfromLast(float spdInput)
+{
+  double deltaSteps = maxNumInArray();
+
+  double bufferX;
+  double bufferY;
+  double bufferZ;
+
+  static double bufferLastX;
+  static double bufferLastY;
+  static double bufferLastZ;
+
+  for (double i = 0; i <= 1; i += (1 / (deltaSteps * 1)) * spdInput)
+  {
+    bufferX = besselCtrl(lastX, goalX, i);
+    bufferY = besselCtrl(lastY, goalY, i);
+    bufferZ = besselCtrl(lastZ, goalZ, i);
+    My_RoArmM2_baseCoordinateCtrl(bufferX, bufferY, bufferZ);
+    if (nanIK)
+    {
+      // IK failed
+      goalX = bufferLastX;
+      goalY = bufferLastY;
+      goalZ = bufferLastZ;
+      My_RoArmM2_baseCoordinateCtrl(goalX, goalY, goalZ);
+      RoArmM2_goalPosMove();
+      RoArmM2_lastPosUpdate();
+      return;
+    }
+    else
+    {
+      // IK succeed.
+      bufferLastX = bufferX;
+      bufferLastY = bufferY;
+      bufferLastZ = bufferZ;
+    }
+    RoArmM2_goalPosMove();
+    delay(2);
+  }
+  My_RoArmM2_baseCoordinateCtrl(goalX, goalY, goalZ);
+  RoArmM2_goalPosMove();
+  RoArmM2_lastPosUpdate();
+}
 
 // ctrl a single axi abs pos(mm).
 // the init position is
@@ -920,16 +1080,25 @@ void RoArmM2_movePosGoalfromLast(float spdInput){
 // initZ = l2A
 // initT = M_PI
 // default inputSpd = 0.25
-void RoArmM2_singlePosAbsBesselCtrl(byte axiInput, double posInput, double inputSpd){
-  switch(axiInput){
-    case 1: goalX = posInput;break;
-    case 2: goalY = posInput;break;
-    case 3: goalZ = posInput;break;
-    case 4: goalT = posInput;break;
+void RoArmM2_singlePosAbsBesselCtrl(byte axiInput, double posInput, double inputSpd)
+{
+  switch (axiInput)
+  {
+  case 1:
+    goalX = posInput;
+    break;
+  case 2:
+    goalY = posInput;
+    break;
+  case 3:
+    goalZ = posInput;
+    break;
+  case 4:
+    goalT = posInput;
+    break;
   }
   RoArmM2_movePosGoalfromLast(inputSpd);
 }
-
 
 // ctrl all axis abs position.
 // initX = l3+l2B
@@ -938,34 +1107,30 @@ void RoArmM2_singlePosAbsBesselCtrl(byte axiInput, double posInput, double input
 // initT = M_PI
 // default inputSpd = 0.36
 
-//贝塞尔曲线控制，平滑，可能会引起进程阻塞
-void RoArmM2_allPosAbsBesselCtrl(double inputX, double inputY, double inputZ, double inputT, double inputSpd){
-  goalX = inputX-10;
+// 贝塞尔曲线控制，平滑，可能会引起进程阻塞
+void RoArmM2_allPosAbsBesselCtrl(double inputX, double inputY, double inputZ, double inputT, double inputSpd)
+{
+  goalX = inputX - 10; // 10用来校准
   goalY = inputY;
-  goalZ = inputZ-20;
+  goalZ = inputZ - 20;
   goalT = inputT;
   RoArmM2_movePosGoalfromLast(inputSpd);
 }
 
-//贝塞尔曲线控制，平滑,手腕始终水平
-// void MY_RoArmM2_allPosAbsBesselCtrl(double inputX, double inputY, double inputZ, double inputSpd){
-//   goalX = inputX;
-//   goalY = inputY;
-//   goalZ = inputZ;
-//   goalT = inputT;
-//   RoArmM2_movePosGoalfromLast(inputSpd);
-// }
-
-
-
-
+// 贝塞尔曲线控制，平滑,手腕始终水平
+ void MY_RoArmM2_allPosAbsBesselCtrl(double inputX, double inputY, double inputZ, double inputSpd){
+   goalX = inputX;
+   goalY = inputY;
+   goalZ = inputZ;
+   My_RoArmM2_movePosGoalfromLast(inputSpd);
+ }
 
 // ChatGPT prompt:
 // '''
 // 我需要一个函数，输入圆心坐标点、半径和比例，当比例从0到1变化时，函数输出的坐标点可以组成一个完整的圆。
 // '''
-// I need a function that inputs the center coordinate point, 
-// radius and scale(t), and when the scale(t) changes from 0 to 1, 
+// I need a function that inputs the center coordinate point,
+// radius and scale(t), and when the scale(t) changes from 0 to 1,
 // the coordinate points output by the function can form a complete circle.
 // '''
 //
@@ -975,70 +1140,71 @@ void RoArmM2_allPosAbsBesselCtrl(double inputX, double inputY, double inputZ, do
 //   RoArmM2_goalPosMove();
 //   delay(5);
 // }
-void getCirclePointYZ(double cx, double cy, double r, double t) {
+void getCirclePointYZ(double cx, double cy, double r, double t)
+{
   double theta = t * 2 * M_PI;
   goalY = cx + r * cos(theta);
   goalZ = cy + r * sin(theta);
 }
 
-
 // delay cmd.
-void RoArmM2_delayMillis(int inputTime) {
+void RoArmM2_delayMillis(int inputTime)
+{
   delay(inputTime);
 }
 
-
 // set the P&I/PID of a joint.
-void RoArmM2_setJointPID(byte jointInput, float inputP, float inputI,float inputD) {
-  switch (jointInput) {
+void RoArmM2_setJointPID(byte jointInput, float inputP, float inputI, float inputD)
+{
+  switch (jointInput)
+  {
   case BASE_JOINT:
-        st.writeByte(BASE_SERVO_ID, ST_PID_P_ADDR, inputP);
-        st.writeByte(BASE_SERVO_ID, ST_PID_I_ADDR, inputI);
-        st.writeByte(BASE_SERVO_ID, ST_PID_D_ADDR, inputD);
-        
-        break;
-  case SHOULDER_JOINT:
-        st.writeByte(SHOULDER_DRIVING_SERVO_ID, ST_PID_P_ADDR, inputP);
-        st.writeByte(SHOULDER_DRIVING_SERVO_ID, ST_PID_I_ADDR, inputI);
-        st.writeByte(SHOULDER_DRIVING_SERVO_ID, ST_PID_D_ADDR, inputD);
+    st.writeByte(BASE_SERVO_ID, ST_PID_P_ADDR, inputP);
+    st.writeByte(BASE_SERVO_ID, ST_PID_I_ADDR, inputI);
+    st.writeByte(BASE_SERVO_ID, ST_PID_D_ADDR, inputD);
 
-        st.writeByte(SHOULDER_DRIVEN_SERVO_ID, ST_PID_P_ADDR, inputP);
-        st.writeByte(SHOULDER_DRIVEN_SERVO_ID, ST_PID_I_ADDR, inputI);
-        st.writeByte(SHOULDER_DRIVEN_SERVO_ID, ST_PID_D_ADDR, inputD);
-        break;
+    break;
+  case SHOULDER_JOINT:
+    st.writeByte(SHOULDER_DRIVING_SERVO_ID, ST_PID_P_ADDR, inputP);
+    st.writeByte(SHOULDER_DRIVING_SERVO_ID, ST_PID_I_ADDR, inputI);
+    st.writeByte(SHOULDER_DRIVING_SERVO_ID, ST_PID_D_ADDR, inputD);
+
+    st.writeByte(SHOULDER_DRIVEN_SERVO_ID, ST_PID_P_ADDR, inputP);
+    st.writeByte(SHOULDER_DRIVEN_SERVO_ID, ST_PID_I_ADDR, inputI);
+    st.writeByte(SHOULDER_DRIVEN_SERVO_ID, ST_PID_D_ADDR, inputD);
+    break;
   case ELBOW_JOINT:
-        st.writeByte(ELBOW_SERVO_ID, ST_PID_P_ADDR, inputP);
-        st.writeByte(ELBOW_SERVO_ID, ST_PID_I_ADDR, inputI);
-        st.writeByte(ELBOW_SERVO_ID, ST_PID_D_ADDR, inputD);
-        break;
+    st.writeByte(ELBOW_SERVO_ID, ST_PID_P_ADDR, inputP);
+    st.writeByte(ELBOW_SERVO_ID, ST_PID_I_ADDR, inputI);
+    st.writeByte(ELBOW_SERVO_ID, ST_PID_D_ADDR, inputD);
+    break;
   case EOAT_JOINT:
-        st.writeByte(GRIPPER_SERVO_ID, ST_PID_P_ADDR, inputP);
-        st.writeByte(GRIPPER_SERVO_ID, ST_PID_I_ADDR, inputI);
-        st.writeByte(GRIPPER_SERVO_ID, ST_PID_D_ADDR, inputD);
-        break;
+    st.writeByte(GRIPPER_SERVO_ID, ST_PID_P_ADDR, inputP);
+    st.writeByte(GRIPPER_SERVO_ID, ST_PID_I_ADDR, inputI);
+    st.writeByte(GRIPPER_SERVO_ID, ST_PID_D_ADDR, inputD);
+    break;
   }
 }
 
-
 // reset the P&I/PID of RoArm-M2.
-void RoArmM2_resetPID() {
-  RoArmM2_setJointPID(BASE_JOINT, 16, 0,0);
-  RoArmM2_setJointPID(SHOULDER_JOINT, 16, 0,0);
-  RoArmM2_setJointPID(ELBOW_JOINT, 16, 0,0);
-  RoArmM2_setJointPID(EOAT_JOINT, 16, 0,0);
+void RoArmM2_resetPID()
+{
+  RoArmM2_setJointPID(BASE_JOINT, 16, 0, 0);
+  RoArmM2_setJointPID(SHOULDER_JOINT, 16, 0, 0);
+  RoArmM2_setJointPID(ELBOW_JOINT, 16, 0, 0);
+  RoArmM2_setJointPID(EOAT_JOINT, 16, 0, 0);
 }
 
-
 // input the angle in deg, and it returns the number of servo steps.
-int calculatePosByDeg(double degInput) {
+int calculatePosByDeg(double degInput)
+{
   return round((degInput / 360) * ARM_SERVO_POS_RANGE);
 }
 
-
-double ang2deg(double inputAng) {
+double ang2deg(double inputAng)
+{
   return (inputAng / 180) * M_PI;
 }
-
 
 // ctrl a single joint abs angle.
 // jointInput: 1-BASE_JOINT
@@ -1048,14 +1214,22 @@ double ang2deg(double inputAng) {
 // inputRad: input the goal angle in deg of the joint.
 // inputSpd: move speed, angle/second.
 // inputAcc: acceleration, angle/second^2.
-void RoArmM2_singleJointAngleCtrl(byte jointInput, double inputAng, u16 inputSpd, u8 inputAcc){
+void RoArmM2_singleJointAngleCtrl(byte jointInput, double inputAng, u16 inputSpd, u8 inputAcc)
+{
   Serial.println("---");
-  Serial.print(jointInput);Serial.print("\t");Serial.print(inputAng);Serial.print("\t");
-  Serial.print(inputSpd);Serial.print("\t");Serial.print(inputAcc);Serial.println();
+  Serial.print(jointInput);
+  Serial.print("\t");
+  Serial.print(inputAng);
+  Serial.print("\t");
+  Serial.print(inputSpd);
+  Serial.print("\t");
+  Serial.print(inputAcc);
+  Serial.println();
 
   inputSpd = abs(inputSpd);
   inputAcc = abs(inputAcc);
-  switch(jointInput){
+  switch (jointInput)
+  {
   case BASE_JOINT:
     BASE_JOINT_ANG = inputAng;
     Serial.println(inputAng);
@@ -1082,7 +1256,6 @@ void RoArmM2_singleJointAngleCtrl(byte jointInput, double inputAng, u16 inputSpd
   RoArmM2_computePosbyJointRad(BASE_JOINT_RAD, SHOULDER_JOINT_RAD, ELBOW_JOINT_RAD, EOAT_JOINT_RAD);
 }
 
-
 // ctrl all joints together.
 // when all joints in initPos(middle position), it looks like below.
 //    -------L3------------O==L2B===
@@ -1101,13 +1274,14 @@ void RoArmM2_singleJointAngleCtrl(byte jointInput, double inputAng, u16 inputSpd
 //
 //
 //    -------L3------------O==L2B==O  <- BASE_JOINT
-//                         ^       
-//   <---X+--Z+            |       
-//           |       ELBOW_JOINT   
+//                         ^
+//   <---X+--Z+            |
+//           |       ELBOW_JOINT
 //           Y+
 //           |
 //           v
-void RoArmM2_allJointsAngleCtrl(double inputBase, double inputShoulder, double inputElbow, double inputHand, u16 inputSpd, u8 inputAcc){
+void RoArmM2_allJointsAngleCtrl(double inputBase, double inputShoulder, double inputElbow, double inputHand, u16 inputSpd, u8 inputAcc)
+{
   BASE_JOINT_ANG = inputBase;
   BASE_JOINT_RAD = ang2deg(inputBase);
 
@@ -1116,7 +1290,7 @@ void RoArmM2_allJointsAngleCtrl(double inputBase, double inputShoulder, double i
 
   ELBOW_JOINT_ANG = inputElbow;
   ELBOW_JOINT_RAD = ang2deg(inputElbow);
-  
+
   EOAT_JOINT_ANG = inputHand;
   EOAT_JOINT_RAD = ang2deg(inputHand);
 
@@ -1126,43 +1300,50 @@ void RoArmM2_allJointsAngleCtrl(double inputBase, double inputShoulder, double i
   RoArmM2_handJointCtrlRad(0, EOAT_JOINT_RAD, 0, 0);
   inputSpd = abs(calculatePosByDeg(inputSpd));
   inputAcc = abs(calculatePosByDeg(inputAcc));
-  for (int i = 0;i < 5;i++) {
+  for (int i = 0; i < 5; i++)
+  {
     moveSpd[i] = inputSpd;
     moveAcc[i] = inputAcc;
   }
   st.SyncWritePosEx(servoID, 5, goalPos, moveSpd, moveAcc);
 }
 
-//控制模式、控制轴、控制指令和控制速度。
-void constantCtrl(byte inputMode, byte inputAxis, byte inputCmd, byte inputSpd) {
+// 控制模式、控制轴、控制指令和控制速度。
+void constantCtrl(byte inputMode, byte inputAxis, byte inputCmd, byte inputSpd)
+{
   const_mode = inputMode;
-  if (const_mode == CONST_ANGLE) {
+  if (const_mode == CONST_ANGLE)
+  {
     const_spd = abs(inputSpd) * 0.0005;
-  } else if (const_mode == CONST_XYZT) {
+  }
+  else if (const_mode == CONST_XYZT)
+  {
     const_spd = abs(inputSpd) * 0.1;
   }
 
-  switch (inputAxis) {
+  switch (inputAxis)
+  {
   case BASE_JOINT:
-          const_cmd_base_x = inputCmd;
-          break;
+    const_cmd_base_x = inputCmd;
+    break;
   case SHOULDER_JOINT:
-          const_cmd_shoulder_y = inputCmd;
-          break;
+    const_cmd_shoulder_y = inputCmd;
+    break;
   case ELBOW_JOINT:
-          const_cmd_elbow_z = inputCmd;
-          break;
+    const_cmd_elbow_z = inputCmd;
+    break;
   case EOAT_JOINT:
-          const_cmd_eoat_t = inputCmd;
-          break;
+    const_cmd_eoat_t = inputCmd;
+    break;
   }
 }
 
-
 // RoArmM2_infoFeedback()
-void constantHandle() {
-   //在没有收到常量控制指令时，将关节角度和目标位置恢复为上一次的状态，以保持机械臂的位置和角度不变
-  if (!const_cmd_base_x && !const_cmd_shoulder_y && !const_cmd_elbow_z && !const_cmd_eoat_t) { 
+void constantHandle()
+{
+  // 在没有收到常量控制指令时，将关节角度和目标位置恢复为上一次的状态，以保持机械臂的位置和角度不变
+  if (!const_cmd_base_x && !const_cmd_shoulder_y && !const_cmd_elbow_z && !const_cmd_eoat_t)
+  {
     const_goal_base = radB;
     const_goal_shoulder = radS;
     const_goal_elbow = radE;
@@ -1175,108 +1356,144 @@ void constantHandle() {
     return;
   }
 
-  if (const_cmd_base_x == MOVE_INCREASE) {//处理基座X轴的增加运动指令。
-    if (const_mode == CONST_ANGLE) { //角度模式
+  if (const_cmd_base_x == MOVE_INCREASE)
+  { // 处理基座X轴的增加运动指令。
+    if (const_mode == CONST_ANGLE)
+    { // 角度模式
       const_goal_base += const_spd;
-      if (const_goal_base > M_PI) {
+      if (const_goal_base > M_PI)
+      {
         const_goal_base = M_PI;
         const_cmd_base_x = MOVE_STOP;
       }
     }
-    else if (const_mode == CONST_XYZT) {//坐标模式
+    else if (const_mode == CONST_XYZT)
+    { // 坐标模式
       goalX += const_spd;
     }
-  } else if (const_cmd_base_x == MOVE_DECREASE) {//处理基座X轴的减少运动指令。
-    if (const_mode == CONST_ANGLE) {
+  }
+  else if (const_cmd_base_x == MOVE_DECREASE)
+  { // 处理基座X轴的减少运动指令。
+    if (const_mode == CONST_ANGLE)
+    {
       const_goal_base -= const_spd;
-      if (const_goal_base < -M_PI) {
+      if (const_goal_base < -M_PI)
+      {
         const_goal_base = -M_PI;
         const_cmd_base_x = MOVE_STOP;
       }
     }
-    else if (const_mode == CONST_XYZT) {
+    else if (const_mode == CONST_XYZT)
+    {
       goalX -= const_spd;
     }
   }
 
-
-  if (const_cmd_shoulder_y == MOVE_INCREASE) {//处理肩部y轴的增加运动指令。
-    if (const_mode == CONST_ANGLE) {
+  if (const_cmd_shoulder_y == MOVE_INCREASE)
+  { // 处理肩部y轴的增加运动指令。
+    if (const_mode == CONST_ANGLE)
+    {
       const_goal_shoulder += const_spd;
-      if (const_goal_shoulder > M_PI/2) {
-        const_goal_shoulder = M_PI/2;
+      if (const_goal_shoulder > M_PI / 2)
+      {
+        const_goal_shoulder = M_PI / 2;
         const_cmd_shoulder_y = MOVE_STOP;
       }
     }
-    else if (const_mode == CONST_XYZT) {
+    else if (const_mode == CONST_XYZT)
+    {
       goalY += const_spd;
     }
-  } else if (const_cmd_shoulder_y == MOVE_DECREASE) {//处理肩部y轴的减少运动指令。
-    if (const_mode == CONST_ANGLE) {
+  }
+  else if (const_cmd_shoulder_y == MOVE_DECREASE)
+  { // 处理肩部y轴的减少运动指令。
+    if (const_mode == CONST_ANGLE)
+    {
       const_goal_shoulder -= const_spd;
-      if (const_goal_shoulder < -M_PI/2) {
-        const_goal_shoulder = -M_PI/2;
+      if (const_goal_shoulder < -M_PI / 2)
+      {
+        const_goal_shoulder = -M_PI / 2;
         const_cmd_shoulder_y = MOVE_STOP;
       }
     }
-    else if (const_mode == CONST_XYZT) {
+    else if (const_mode == CONST_XYZT)
+    {
       goalY -= const_spd;
     }
   }
 
-
-  if (const_cmd_elbow_z == MOVE_INCREASE) {//处理肘部z轴的增加运动指令。
-    if (const_mode == CONST_ANGLE) {
+  if (const_cmd_elbow_z == MOVE_INCREASE)
+  { // 处理肘部z轴的增加运动指令。
+    if (const_mode == CONST_ANGLE)
+    {
       const_goal_elbow += const_spd;
-      if (const_goal_elbow > M_PI) {
+      if (const_goal_elbow > M_PI)
+      {
         const_goal_elbow = M_PI;
         const_cmd_elbow_z = MOVE_STOP;
       }
     }
-    else if (const_mode == CONST_XYZT) {
+    else if (const_mode == CONST_XYZT)
+    {
       goalZ += const_spd;
     }
-  } else if (const_cmd_elbow_z == MOVE_DECREASE) {//处理肘部z轴的减少运动指令。
-    if (const_mode == CONST_ANGLE) {
+  }
+  else if (const_cmd_elbow_z == MOVE_DECREASE)
+  { // 处理肘部z轴的减少运动指令。
+    if (const_mode == CONST_ANGLE)
+    {
       const_goal_elbow -= const_spd;
-      if (const_goal_elbow < -M_PI/4) {
-        const_goal_elbow = -M_PI/4;
+      if (const_goal_elbow < -M_PI / 4)
+      {
+        const_goal_elbow = -M_PI / 4;
         const_cmd_elbow_z = MOVE_STOP;
       }
     }
-    else if (const_mode == CONST_XYZT) {
+    else if (const_mode == CONST_XYZT)
+    {
       goalZ -= const_spd;
     }
   }
 
-
-  if (const_cmd_eoat_t == MOVE_INCREASE) {//处理末端执行器的增加运动指令。
-    if (const_mode == CONST_ANGLE) {
+  if (const_cmd_eoat_t == MOVE_INCREASE)
+  { // 处理末端执行器的增加运动指令。
+    if (const_mode == CONST_ANGLE)
+    {
       const_goal_eoat += const_spd;
-      if (const_goal_eoat > M_PI*7/4) {
-        const_goal_eoat = M_PI*7/4;
+      if (const_goal_eoat > M_PI * 7 / 4)
+      {
+        const_goal_eoat = M_PI * 7 / 4;
         const_cmd_eoat_t = MOVE_STOP;
       }
     }
-    else if (const_mode == CONST_XYZT) {
-      goalT += const_spd/200;  //200是调速用的
+    else if (const_mode == CONST_XYZT)
+    {
+      goalT += const_spd / 200; // 200是调速用的
     }
-  } else if (const_cmd_eoat_t == MOVE_DECREASE) {//处理末端执行器的减少运动指令。
-    if (const_mode == CONST_ANGLE) {
+  }
+  else if (const_cmd_eoat_t == MOVE_DECREASE)
+  { // 处理末端执行器的减少运动指令。
+    if (const_mode == CONST_ANGLE)
+    {
       const_goal_eoat -= const_spd;
-      if (const_goal_eoat < -M_PI/4) {
-        const_goal_eoat = -M_PI/4;
+      if (const_goal_eoat < -M_PI / 4)
+      {
+        const_goal_eoat = -M_PI / 4;
         const_cmd_eoat_t = MOVE_STOP;
       }
     }
-    else if (const_mode == CONST_XYZT) {
-      goalT -= const_spd/200;
+    else if (const_mode == CONST_XYZT)
+    {
+      goalT -= const_spd / 200;
     }
   }
 
-  if (const_mode == CONST_ANGLE) {
-    RoArmM2_allJointAbsCtrl(const_goal_base, const_goal_shoulder, const_goal_elbow, const_goal_eoat, 0, 0); //赋值舵机
-  } else if (const_mode == CONST_XYZT) {
+  if (const_mode == CONST_ANGLE)
+  {
+    RoArmM2_allJointAbsCtrl(const_goal_base, const_goal_shoulder, const_goal_elbow, const_goal_eoat, 0, 0); // 赋值舵机
+  }
+  else if (const_mode == CONST_XYZT)
+  {
 
     static double bufferLastX;
     static double bufferLastY;
@@ -1285,18 +1502,20 @@ void constantHandle() {
 
     RoArmM2_baseCoordinateCtrl(goalX, goalY, goalZ, goalT);
 
-    if (nanIK) {  //结算出的角度为非数值
+    if (nanIK)
+    { // 结算出的角度为非数值
       // IK failed
       goalX = bufferLastX;
       goalY = bufferLastY;
       goalZ = bufferLastZ;
       goalT = bufferLastT;
-      RoArmM2_baseCoordinateCtrl(bufferLastX, bufferLastY, bufferLastZ, bufferLastT); //调用上次值
+      RoArmM2_baseCoordinateCtrl(bufferLastX, bufferLastY, bufferLastZ, bufferLastT); // 调用上次值
       RoArmM2_goalPosMove();
       RoArmM2_lastPosUpdate();
       return;
     }
-    else  {      //结算出的角度为数值,有效
+    else
+    { // 结算出的角度为数值,有效
       bufferLastX = goalX;
       bufferLastY = goalY;
       bufferLastZ = goalZ;
@@ -1314,80 +1533,145 @@ void constantHandle() {
 // // // // // // // // // // // // // // // //
 // example:
 // RoArmM2_Test_drawSqureYZ(-100, 0, 50, 300);
-void RoArmM2_Test_drawSqureXZ(int squre_x, int squre_y, int squre_l){
-  for(double i=0;i<=squre_l;i+=0.1){
-    simpleLinkageIkRad(l2, l3, l3+l2B + squre_x, l2A-i+squre_y);
-    RoArmM2_goalPosMove();
-    delay(3);
-  }
-  delay(1500);
-
-  for(double i=0;i<=squre_l;i+=0.1){
-    simpleLinkageIkRad(l2, l3, l3+l2B-i + squre_x , l2A- squre_l+squre_y);
-    RoArmM2_goalPosMove();
-    delay(3);
-  }
-  delay(1500);
-
-  for(double i=0;i<=squre_l;i+=0.1){
-    simpleLinkageIkRad(l2, l3, l3+l2B- squre_l +squre_x, l2A- squre_l +i+squre_y);
-    RoArmM2_goalPosMove();
-    delay(3);
-  }
-  delay(1500);
-
-  for(double i=0;i<=squre_l;i+=0.1){
-    simpleLinkageIkRad(l2, l3, l3+l2B- squre_l +i +squre_x, l2A +squre_y);
-    RoArmM2_goalPosMove();
-    delay(3);
-  }
-  delay(1500);
-}
-
-
-void RoArmM2_Test_drawSqureYZ(int squre_x, int squre_y, int squre_z, int squre_l){
-  for(double i=0;i<=squre_l;i+=0.1){
-    RoArmM2_baseCoordinateCtrl(l3+l2B+squre_x, squre_y-squre_l/2+i, l2A+squre_z,0);
-    RoArmM2_goalPosMove();
-    delay(2);
-  }
-  delay(1250);
-
-  for(double i=0;i<=squre_l;i+=0.1){
-    RoArmM2_baseCoordinateCtrl(l3+l2B+squre_x, squre_y+squre_l/2, l2A+squre_z-i,0);
-    RoArmM2_goalPosMove();
-    delay(2);
-  }
-  delay(1250);
-
-  for(double i=0;i<=squre_l;i+=0.1){
-    RoArmM2_baseCoordinateCtrl(l3+l2B+squre_x, squre_y+squre_l/2-i, l2A+squre_z-squre_l,0);
-    RoArmM2_goalPosMove();
-    delay(2);
-  }
-  delay(1250);
-
-  for(double i=0;i<=squre_l;i+=0.1){
-    RoArmM2_baseCoordinateCtrl(l3+l2B+squre_x, squre_y-squre_l/2, l2A+squre_z-squre_l+i,0);
-    RoArmM2_goalPosMove();
-    delay(2);
-  }
-  delay(1250);
-}
-
-
-void RoArmM2_Test_drawCircleYZ(){
-  for(float i=0; i<=1; i+=0.001){
-    getCirclePointYZ(initY, initZ-100, 100, i);
-    RoArmM2_baseCoordinateCtrl(initX-100, goalY, goalZ,0);
-    RoArmM2_goalPosMove();
-    delay(3);
-  }
-}
-
-void Camera_XYZ(double inputx,double inputy,double inputz)
+void RoArmM2_Test_drawSqureXZ(int squre_x, int squre_y, int squre_l)
 {
-											  Camera_Input_X =inputx;
-											  Camera_Input_Y =inputy;
-											  Camera_Input_Z =inputz;
+  for (double i = 0; i <= squre_l; i += 0.1)
+  {
+    simpleLinkageIkRad(l2, l3, l3 + l2B + squre_x, l2A - i + squre_y);
+    RoArmM2_goalPosMove();
+    delay(3);
+  }
+  delay(1500);
+
+  for (double i = 0; i <= squre_l; i += 0.1)
+  {
+    simpleLinkageIkRad(l2, l3, l3 + l2B - i + squre_x, l2A - squre_l + squre_y);
+    RoArmM2_goalPosMove();
+    delay(3);
+  }
+  delay(1500);
+
+  for (double i = 0; i <= squre_l; i += 0.1)
+  {
+    simpleLinkageIkRad(l2, l3, l3 + l2B - squre_l + squre_x, l2A - squre_l + i + squre_y);
+    RoArmM2_goalPosMove();
+    delay(3);
+  }
+  delay(1500);
+
+  for (double i = 0; i <= squre_l; i += 0.1)
+  {
+    simpleLinkageIkRad(l2, l3, l3 + l2B - squre_l + i + squre_x, l2A + squre_y);
+    RoArmM2_goalPosMove();
+    delay(3);
+  }
+  delay(1500);
+}
+
+void RoArmM2_Test_drawSqureYZ(int squre_x, int squre_y, int squre_z, int squre_l)
+{
+  for (double i = 0; i <= squre_l; i += 0.1)
+  {
+    RoArmM2_baseCoordinateCtrl(l3 + l2B + squre_x, squre_y - squre_l / 2 + i, l2A + squre_z, 0);
+    RoArmM2_goalPosMove();
+    delay(2);
+  }
+  delay(1250);
+
+  for (double i = 0; i <= squre_l; i += 0.1)
+  {
+    RoArmM2_baseCoordinateCtrl(l3 + l2B + squre_x, squre_y + squre_l / 2, l2A + squre_z - i, 0);
+    RoArmM2_goalPosMove();
+    delay(2);
+  }
+  delay(1250);
+
+  for (double i = 0; i <= squre_l; i += 0.1)
+  {
+    RoArmM2_baseCoordinateCtrl(l3 + l2B + squre_x, squre_y + squre_l / 2 - i, l2A + squre_z - squre_l, 0);
+    RoArmM2_goalPosMove();
+    delay(2);
+  }
+  delay(1250);
+
+  for (double i = 0; i <= squre_l; i += 0.1)
+  {
+    RoArmM2_baseCoordinateCtrl(l3 + l2B + squre_x, squre_y - squre_l / 2, l2A + squre_z - squre_l + i, 0);
+    RoArmM2_goalPosMove();
+    delay(2);
+  }
+  delay(1250);
+}
+
+void RoArmM2_Test_drawCircleYZ()
+{
+  for (float i = 0; i <= 1; i += 0.001)
+  {
+    getCirclePointYZ(initY, initZ - 100, 100, i);
+    RoArmM2_baseCoordinateCtrl(initX - 100, goalY, goalZ, 0);
+    RoArmM2_goalPosMove();
+    delay(3);
+  }
+}
+
+void Camera_XYZ(double inputx, double inputy, double inputz,int grab_pwm)
+{
+  Camera_Input_X = inputx;
+  Camera_Input_Y = inputy;
+  Camera_Input_Z = inputz;
+  GRAB_JOINT_PWM = grab_pwm;
+}
+
+void Gripper_Open(void)
+{
+
+  static char time =0;
+  int spd;
+  int pwm;
+  if (time ==0)
+  {
+      spd = (ARM_SERVO_GRAB_MAX_POS - GRAB_JOINT_PWM_LAST) / 100;
+      time =1;
+  }
+  
+
+  for (int i = 0; i < 100; i++)
+  {
+    pwm =GRAB_JOINT_PWM_LAST+spd;
+    GRAB_ServoCtrl(MINMAX(pwm,ARM_SERVO_GRAB_MIN_POS,ARM_SERVO_GRAB_MAX_POS));
+    GRAB_JOINT_PWM_LAST =pwm;
+  }
+  time =0;
+}
+
+void Gripper_Close(int radInput)
+{
+  static char time =0;
+  int spd;
+  int pwm;
+
+    if (time ==0)
+  {
+      spd = (ARM_SERVO_GRAB_MAX_POS - radInput) / 100;
+      time =1;
+  }
+
+  for (int i = 0; i < 100; i++)
+  {
+    pwm =GRAB_JOINT_PWM_LAST-spd;
+    GRAB_ServoCtrl(MINMAX(pwm,ARM_SERVO_GRAB_MIN_POS,ARM_SERVO_GRAB_MAX_POS));
+    GRAB_JOINT_PWM_LAST =pwm;
+  }
+
+  time =0;
+}
+
+void Grab_Cargo(void)
+{
+  Gripper_Open(); //张开抓手
+  MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_2_inputX_Left_Scan + Camera_Input_X, Camera_Input_Y, Shelve_Left_2_inputZ_Left_Scan + Camera_Input_Z + 30, 0.25);
+  Gripper_Close(GRAB_JOINT_PWM); //抓住货物 
+  MY_RoArmM2_allPosAbsBesselCtrl(PLACE_Left_inputX,PLACE_Left_inputY,PLACE_Left_inputZ,0.25); //放置货物预备位置
+  Gripper_Open(); //张开抓手
+  MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_2_inputX_Left_Scan,0,Shelve_Left_2_inputZ_Left_Scan,0.25); //回到拍摄位置
 }

@@ -85,9 +85,9 @@ bool runNewJsonCmd = false;
 #define ARM_SERVO_ELBOW_INIT_POS     1955 //变大Z-轴往下  1955
 #define ARM_SERVO_WRIST_INIT_POS     2047
 
-#define ARM_SERVO_EOAT_INIT_POS     130  
-#define ARM_SERVO_EOAT_MIN_POS      30  //变小张开
-#define ARM_SERVO_EOAT_MAX_POS      130  //变大闭合
+#define ARM_SERVO_GRAB_INIT_POS     130  
+#define ARM_SERVO_GRAB_MIN_POS      30  //变小张开
+#define ARM_SERVO_GRAB_MAX_POS      130  //变大闭合
 
 
 
@@ -105,15 +105,18 @@ bool runNewJsonCmd = false;
 #define Shelve_Left_1_inputX_Left_Scan     125
 #define Shelve_Left_1_inputZ_Left_Scan     -140
 //货架第二层识别动作
-#define Shelve_Left_2_inputX_Left_Scan     58.25990816
+#define Shelve_Left_2_inputX_Left_Scan     58
 #define Shelve_Left_2_inputZ_Left_Scan     60
 //货架第三层识别动作
-#define Shelve_Left_3_inputX_Left_Scan     58.25990816
+#define Shelve_Left_3_inputX_Left_Scan     58
 #define Shelve_Left_3_inputZ_Left_Scan     60
 //清单扫描动作
 #define OCR_inputX     58.25990816
 #define OCR_inputZ     60
-//初始收缩动作
+//货物放置动作
+#define PLACE_Left_inputX     58.25990816
+#define PLACE_Left_inputY     50
+#define PLACE_Left_inputZ     60
 
 
 
@@ -238,6 +241,9 @@ double SHOULDER_JOINT_RAD = 0;
 double ELBOW_JOINT_RAD = M_PI/2;
 double EOAT_JOINT_RAD = M_PI;
 double EOAT_JOINT_RAD_BUFFER;
+
+int GRAB_JOINT_PWM=ARM_SERVO_GRAB_INIT_POS;
+int GRAB_JOINT_PWM_LAST= ARM_SERVO_GRAB_INIT_POS;
 
 double BASE_JOINT_ANG  = 0;
 double SHOULDER_JOINT_ANG = 0;
