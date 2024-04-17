@@ -30,7 +30,7 @@ uint8_t mac_received_from[6];
 // Multifunction End-Effector Switching System.
 // 0 - end servo as grab.
 // 1 - end servo as a joint moving in vertical plane.
-byte EEMode = 1;
+byte EEMode = 0;
 
 // esp-now run json block cmd
 // false: can not run esp-now block cmd
@@ -38,7 +38,7 @@ byte EEMode = 1;
 bool espNowRunBlockCmd = false;
 
 // run new json cmd
-bool runNewJsonCmd = true;
+bool runNewJsonCmd = false;
 
 
 #define BASE_JOINT     1
@@ -70,12 +70,57 @@ bool runNewJsonCmd = true;
 #define ARM_SERVO_ANGLE_RANGE  360
 #define ARM_SERVO_INIT_SPEED   600
 #define ARM_SERVO_INIT_ACC      20//加速度
+
+#define ARM_SERVO_BASE_INIT_POS_LEFT     2050  //2050
+#define ARM_SERVO_BASE_MIN_POS_LEFT      2600 //往右
+#define ARM_SERVO_BASE_MAX_POS_LEFT      1450 //往左
+
+#define ARM_SERVO_BASE_INIT_POS_RIGHT      2050
+#define ARM_SERVO_BASE_MIN_POS_RIGHT      2050
+#define ARM_SERVO_BASE_MAX_POS_RIGHT      2050
+
+// #define ARM_SERVO_SHOULDER_INIT_POS  1500 //变小逆时针   2030
+#define ARM_SERVO_SHOULDER_INIT_POS  2030 //变小逆时针   2030
+// #define ARM_SERVO_ELBOW_INIT_POS     2550 //变大Z-轴往下  1955
+#define ARM_SERVO_ELBOW_INIT_POS     1955 //变大Z-轴往下  1955
+#define ARM_SERVO_WRIST_INIT_POS     2047
+
+#define ARM_SERVO_EOAT_INIT_POS     130  
+#define ARM_SERVO_EOAT_MIN_POS      30  //变小张开
+#define ARM_SERVO_EOAT_MAX_POS      130  //变大闭合
+
+
+
 // 长度
 #define ARM_L1_LENGTH_MM    126.06
 #define ARM_L2_LENGTH_MM_A  236.82
 #define ARM_L2_LENGTH_MM_B	30.00 
 #define ARM_L3_LENGTH_MM_A_0	280.15
 #define ARM_L3_LENGTH_MM_B_0	1.73
+
+#define ARM_L3_LENGTH_MM_A_1	215.99
+#define ARM_L3_LENGTH_MM_B_1	0
+
+//货架第一层识别动作
+#define Shelve_Left_1_inputX_Left_Scan     125
+#define Shelve_Left_1_inputZ_Left_Scan     -140
+//货架第二层识别动作
+#define Shelve_Left_2_inputX_Left_Scan     58.25990816
+#define Shelve_Left_2_inputZ_Left_Scan     60
+//货架第三层识别动作
+#define Shelve_Left_3_inputX_Left_Scan     58.25990816
+#define Shelve_Left_3_inputZ_Left_Scan     60
+//清单扫描动作
+#define OCR_inputX     58.25990816
+#define OCR_inputZ     60
+//初始收缩动作
+
+
+
+
+
+
+
 
 // 	  TYPE:0
 //    -------L3A-----------O==L2B===
@@ -96,14 +141,17 @@ double l2A = ARM_L2_LENGTH_MM_A;
 double l2B = ARM_L2_LENGTH_MM_B;
 double l2  = sqrt(l2A * l2A + l2B * l2B);
 double t2rad = atan2(l2B, l2A);//L2的tan夹角，以弧度制为单位
-double l3A = ARM_L3_LENGTH_MM_A_0;
-double l3B = ARM_L3_LENGTH_MM_B_0;
+double l3A = ARM_L3_LENGTH_MM_A_1;
+double l3B = ARM_L3_LENGTH_MM_B_1;
 double l3  = sqrt(l3A * l3A + l3B * l3B);
 double t3rad = atan2(l3B, l3A);
 
+double Camera_Input_X =0;
+double Camera_Input_Y =0;
+double Camera_Input_Z =0;
 
-#define ARM_L3_LENGTH_MM_A_1	215.99
-#define ARM_L3_LENGTH_MM_B_1	0
+
+
 
 // edge
 double ARM_L4_LENGTH_MM_A =	67.85;
@@ -140,8 +188,8 @@ double ARM_L4_LENGTH_MM_A =	67.85;
 //   	   \
 // 		-----------
 
-double EoAT_A = 0;
-double EoAT_B = 0;
+double EoAT_A = 92.15;
+double EoAT_B = 100;
 double l4A = ARM_L4_LENGTH_MM_A;
 double l4B = ARM_L4_LENGTH_MM_B;
 double lEA = EoAT_A + ARM_L4_LENGTH_MM_A;
@@ -150,7 +198,7 @@ double lE  = sqrt(lEA * lEA + lEB * lEB);
 double tErad = atan2(lEB, lEA);
 
 
-double initX = l3A+l2B; //
+double initX = l3A+l2B; 
 double initY = 0;
 double initZ = l2A-l3B;
 double initT = M_PI;//初始姿态为PI，表示180度

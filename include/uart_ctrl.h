@@ -36,14 +36,21 @@ void jsonCmdReceiveHandler(){
 												jsonCmdReceive["pos"],
 												jsonCmdReceive["spd"]
 												);break;
-	case CMD_XYZT_GOAL_CTRL: 
+	case CMD_XYZT_GOAL_CTRL: //摄像头坐标控制
 												RoArmM2_allPosAbsBesselCtrl(
 											  jsonCmdReceive["x"],
 											  jsonCmdReceive["y"],
 											  jsonCmdReceive["z"],
 											  jsonCmdReceive["t"],
 											  jsonCmdReceive["spd"]
-											  );break;
+											  );break;									  
+
+	case CMD_XYZT_ACQU: //摄像头坐标          
+											   Camera_XYZ(											  
+											  jsonCmdReceive["x"],
+											  jsonCmdReceive["y"],
+											  jsonCmdReceive["z"]
+											  );break;																		  
 	case CMD_XYZT_DIRECT_CTRL:
 												RoArmM2_baseCoordinateCtrl(
 												jsonCmdReceive["x"],
@@ -287,6 +294,8 @@ void jsonCmdReceiveHandler(){
 }
 
 
+extern char Process_flag;
+
 void serialCtrl() {
   static String receivedData;
 
@@ -302,7 +311,9 @@ void serialCtrl() {
   			if (InfoPrint == 1) {
   				Serial.println(receivedData);
   			}
-        jsonCmdReceiveHandler();
+
+        
+		Process_flag =1;
       } else {
         // Handle JSON parsing error here
       }
@@ -310,4 +321,10 @@ void serialCtrl() {
       receivedData = "";
     }
   }
+}
+
+void serialCtrl_coordinate(void)
+{
+	static String receivedData;
+	
 }

@@ -2,6 +2,8 @@
 #include <math.h>
 #define ANG2DEG 0.017453292
 
+extern void EOAT_ServoCtrl(int posInput);
+
 // Instantiate a servo control object.
 SMS_STS st;
 
@@ -30,8 +32,9 @@ ServoFeedback servoFeedback[5];
 
 
 // input the angle in radians, and it returns the number of servo steps.
+//把弧度映射到舵机转一圈4096之内
 double calculatePosByRad(double radInput) {
-  return round((radInput / (2 * M_PI)) * ARM_SERVO_POS_RANGE);
+  return round((radInput / (2 * M_PI)) * ARM_SERVO_POS_RANGE);  
 }
 
 // input the number of servo steps and the joint name
@@ -194,7 +197,7 @@ void RoArmM2_moveInit() {
 
   // move BASE_SERVO to middle position.
   if(InfoPrint == 1){Serial.println("Moving BASE_JOINT to initPos.");}
-  st.WritePosEx(BASE_SERVO_ID, ARM_SERVO_MIDDLE_POS, ARM_SERVO_INIT_SPEED, ARM_SERVO_INIT_ACC);
+  st.WritePosEx(BASE_SERVO_ID, ARM_SERVO_BASE_INIT_POS_LEFT, ARM_SERVO_INIT_SPEED, ARM_SERVO_INIT_ACC);
 
   // release SHOULDER_DRIVEN_SERVO torque.
   if(InfoPrint == 1){Serial.println("Unlock the torque of SHOULDER_DRIVEN_SERVO.");}
@@ -202,11 +205,11 @@ void RoArmM2_moveInit() {
 
   // move SHOULDER_DRIVING_SERVO to middle position.
   if(InfoPrint == 1){Serial.println("Moving SHOULDER_JOINT to initPos.");}
-  st.WritePosEx(SHOULDER_DRIVING_SERVO_ID, ARM_SERVO_MIDDLE_POS, ARM_SERVO_INIT_SPEED, ARM_SERVO_INIT_ACC);
+  st.WritePosEx(SHOULDER_DRIVING_SERVO_ID, ARM_SERVO_SHOULDER_INIT_POS, ARM_SERVO_INIT_SPEED, ARM_SERVO_INIT_ACC);
 
   // check SHOULDER_DRIVEING_SERVO position.
   if(InfoPrint == 1){Serial.println("...");}
-  waitMove2Goal(SHOULDER_DRIVING_SERVO_ID, ARM_SERVO_MIDDLE_POS, 30);
+  waitMove2Goal(SHOULDER_DRIVING_SERVO_ID, ARM_SERVO_SHOULDER_INIT_POS, 30);
 
   // wait for the jitter to go away.
   delay(1200);
@@ -222,13 +225,16 @@ void RoArmM2_moveInit() {
 
   // move ELBOW_SERVO to middle position.
   if(InfoPrint == 1){Serial.println("Moving ELBOW_SERVO to middle position.");}
-  st.WritePosEx(ELBOW_SERVO_ID, ARM_SERVO_MIDDLE_POS, ARM_SERVO_INIT_SPEED, ARM_SERVO_INIT_ACC);
+  st.WritePosEx(ELBOW_SERVO_ID, ARM_SERVO_ELBOW_INIT_POS, ARM_SERVO_INIT_SPEED, ARM_SERVO_INIT_ACC);
   waitMove2Goal(ELBOW_SERVO_ID, ARM_SERVO_MIDDLE_POS, 20);
 
   if(InfoPrint == 1){Serial.println("Moving GRIPPER_SERVO to middle position.");}
-  st.WritePosEx(GRIPPER_SERVO_ID, ARM_SERVO_MIDDLE_POS, ARM_SERVO_INIT_SPEED, ARM_SERVO_INIT_ACC);
+  st.WritePosEx(GRIPPER_SERVO_ID, ARM_SERVO_WRIST_INIT_POS, ARM_SERVO_INIT_SPEED, ARM_SERVO_INIT_ACC);
 
   delay(1000);
+
+  EOAT_ServoCtrl(ARM_SERVO_EOAT_INIT_POS);
+  delay(500);
 }
 
 
@@ -248,8 +254,10 @@ void RoArmM2_moveInit() {
 // 具体来说，输入的角度(radInput)增加时，舵机会向左移动。
 int RoArmM2_baseJointCtrlRad(byte returnType, double radInput, u16 speedInput, u8 accInput) {
   radInput = -constrain(radInput, -M_PI, M_PI);
-  s16 computePos = calculatePosByRad(radInput) + ARM_SERVO_MIDDLE_POS;
+  s16 computePos = calculatePosByRad(radInput) + ARM_SERVO_BASE_INIT_POS_LEFT;
   goalPos[0] = computePos;
+
+  // goalPos[0] = constrain(goalPos[0], ARM_SERVO_BASE_MIN_POS_LEFT,ARM_SERVO_BASE_MAX_POS_LEFT); //限幅
 
   if(returnType){
     st.WritePosEx(BASE_SERVO_ID, goalPos[0], speedInput, accInput);
@@ -274,8 +282,10 @@ int RoArmM2_baseJointCtrlRad(byte returnType, double radInput, u16 speedInput, u
 int RoArmM2_shoulderJointCtrlRad(byte returnType, double radInput, u16 speedInput, u8 accInput) {
   radInput = constrain(radInput, -M_PI/2, M_PI/2);
   s16 computePos = calculatePosByRad(radInput);
-  goalPos[1] = ARM_SERVO_MIDDLE_POS + computePos;
-  goalPos[2] = ARM_SERVO_MIDDLE_POS - computePos;
+
+  goalPos[1] = ARM_SERVO_SHOULDER_INIT_POS + computePos;
+  goalPos[2] = ARM_SERVO_SHOULDER_INIT_POS - computePos;
+  
   
   if(returnType == 1){
     st.WritePosEx(SHOULDER_DRIVING_SERVO_ID, goalPos[1], speedInput, accInput);
@@ -304,7 +314,7 @@ int RoArmM2_shoulderJointCtrlRad(byte returnType, double radInput, u16 speedInpu
 // 当returnType为1时，函数返回肘关节舵机的位置，并将其保存在goalPos[3]中，舵机会移动。
 // 具体来说，输入的角度(angleInput)增加时，肘关节会向下移动。
 int RoArmM2_elbowJointCtrlRad(byte returnType, double radInput, u16 speedInput, u8 accInput) {
-  s16 computePos = calculatePosByRad(radInput) + 1024;
+  s16 computePos = calculatePosByRad(radInput) + ARM_SERVO_ELBOW_INIT_POS-1024;
   goalPos[3] = constrain(computePos, 512, 3071);
 
   if(returnType){
@@ -691,12 +701,13 @@ void movePoint(double xA, double yA, double s, double *xB, double *yB) {
 
 //计算关节角度和坐标
 void RoArmM2_baseCoordinateCtrl(double inputX, double inputY, double inputZ, double inputT){
-  if (EEMode == 0) { //笛卡尔坐标系
+  if (EEMode == 0) {
     cartesian_to_polar(inputX, inputY, &base_r, &BASE_JOINT_RAD); //将输入的X和Y坐标转换为基座关节的极坐标（半径和角度）。
     simpleLinkageIkRad(l2, l3, base_r, inputZ); //根据输入的半径和Z坐标，计算并控制基座关节的角度。
-    RoArmM2_handJointCtrlRad(0, inputT, 0, 0); //控制手腕关节的角度，其中inputT为目标角度。
+    // RoArmM2_handJointCtrlRad(0, inputT, 0, 0); //控制手腕关节的角度，其中inputT为目标角度。
+    RoArmM2_handJointCtrlRad(0, M_PI*3/2-SHOULDER_JOINT_RAD-ELBOW_JOINT_RAD, 0, 0);
   }
-  else if (EEMode == 1) { //末端执行器坐标系
+  else if (EEMode == 1) { 
     rotatePoint((inputT - M_PI), &delta_x, &delta_y); //将输入的T坐标减去π，得到旋转角度变量。根据旋转角度变量，计算出偏移量delta_x和delta_y。
     movePoint(inputX, inputY, delta_x, &beta_x, &beta_y); //根据输入的X、Y坐标和偏移量，计算出新的坐标beta_x和beta_y。
     cartesian_to_polar(beta_x, beta_y, &base_r, &BASE_JOINT_RAD);//将计算得到的beta_x和beta_y转换为基座关节的极坐标（半径和角度）。
@@ -929,12 +940,24 @@ void RoArmM2_singlePosAbsBesselCtrl(byte axiInput, double posInput, double input
 
 //贝塞尔曲线控制，平滑，可能会引起进程阻塞
 void RoArmM2_allPosAbsBesselCtrl(double inputX, double inputY, double inputZ, double inputT, double inputSpd){
-  goalX = inputX;
+  goalX = inputX-10;
   goalY = inputY;
-  goalZ = inputZ;
+  goalZ = inputZ-20;
   goalT = inputT;
   RoArmM2_movePosGoalfromLast(inputSpd);
 }
+
+//贝塞尔曲线控制，平滑,手腕始终水平
+// void MY_RoArmM2_allPosAbsBesselCtrl(double inputX, double inputY, double inputZ, double inputSpd){
+//   goalX = inputX;
+//   goalY = inputY;
+//   goalZ = inputZ;
+//   goalT = inputT;
+//   RoArmM2_movePosGoalfromLast(inputSpd);
+// }
+
+
+
 
 
 // ChatGPT prompt:
@@ -1360,4 +1383,11 @@ void RoArmM2_Test_drawCircleYZ(){
     RoArmM2_goalPosMove();
     delay(3);
   }
+}
+
+void Camera_XYZ(double inputx,double inputy,double inputz)
+{
+											  Camera_Input_X =inputx;
+											  Camera_Input_Y =inputy;
+											  Camera_Input_Z =inputz;
 }

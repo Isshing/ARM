@@ -15,33 +15,25 @@ StaticJsonDocument<256> jsonInfoHttp;
 
 // functions for oled.
 #include "oled_ctrl.h"
-
 // functions for RoArm-M2 ctrl.
 #include "RoArm-M2_module.h"
-
 // functions for pneumatic modules and lights ctrl. 
 #include "switch_module.h"
-
 // define json cmd.
 #include "json_cmd.h"
-
 // functions for editing the files in flash.
 #include "files_ctrl.h"
-
 // advance functions for RoArm-M2 ctrl.
 #include "RoArm-M2_advance.h"
-
 // functions for wifi ctrl.
 #include "wifi_ctrl.h"
-
 // functions for esp-now.
 #include "esp_now_ctrl.h"
-
 // functions for uart json ctrl.
 #include "uart_ctrl.h"
-
 // functions for http & web server.
 #include "http_server.h"
+#include "pwmServoCtrl.h"
 
 
 // void setup() {
@@ -139,26 +131,39 @@ StaticJsonDocument<256> jsonInfoHttp;
 // void loop() {
 //   serialCtrl();
 //   // server.handleClient();
-
-//   // unsigned long curr_time = millis();
-//   // if (curr_time - prev_time >= 10){
-//   //   constantHandle();
-//   //   prev_time = curr_time;
+//   char receivedChar = Serial.read();
+// // 
+//   // if (receivedChar=='1')
+//   // {
+//   //   RoArmM2_Test_drawSqureYZ(-100, 0, 50, 300);
 //   // }
+
+//   unsigned long curr_time = millis();
+//   if (curr_time - prev_time >= 10){
+//     // constantHandle();
+    
+//     prev_time = curr_time;
+//   }
+//   // RoArmM2_allPosAbsBesselCtrl(l3+l2B,0,l2A,M_PI,0.36);
+//   // delay(1500);
+//   // RoArmM2_allPosAbsBesselCtrl(l3+l2B+10,5,l2A,M_PI,0.36);
+//   // RoArmM2_Test_drawSqureYZ(-100, 0, 50, 300);
 
 //   RoArmM2_getPosByServoFeedback();//获取参数
 
 //   if (InfoPrint == 2) {
 //     RoArmM2_infoFeedback();
 //   }
-//   // if(runNewJsonCmd) {
+//   if(runNewJsonCmd) {
 //     jsonCmdReceiveHandler();
 //     jsonCmdReceive.clear();
-//   //   runNewJsonCmd = false;
-//   // }
+//     runNewJsonCmd = false;
+//   }
 // }
 
 
+
+char Process_flag=0;
 
 // 定义任务句柄
 TaskHandle_t Task1;
@@ -170,10 +175,38 @@ void Task1code( void * pvParameters ){
   // Serial.println(xPortGetCoreID());
   for(;;){
     // Serial.println("This is Task1");
-    jsonCmdReceiveHandler();
-    jsonCmdReceive.clear();
 
-    vTaskDelay(1000 / portTICK_PERIOD_MS); // 延迟1秒
+    static char time =0;
+
+    unsigned long curr_time = millis();
+    if (curr_time - prev_time >= 10){
+      constantHandle();
+      prev_time = curr_time;
+    }
+    // RoArmM2_Test_drawSqureYZ(-100, 0, 50, 300);
+    // RoArmM2_singleJointAbsCtrl(SHOULDER_JOINT,M_PI/2,0.36,10);
+    // RoArmM2_allJointAbsCtrl();
+
+    if (Process_flag)
+    {
+      jsonCmdReceiveHandler();
+      time =1;
+      
+      Process_flag=0;
+    }
+
+
+RoArmM2_allPosAbsBesselCtrl(58+Camera_Input_X,Camera_Input_Y,60+Camera_Input_Z+30,initT,0.36);
+												// RoArmM2_baseCoordinateCtrl(Shelve_Left_2_inputX_Left_Scan,0,Shelve_Left_2_inputZ_Left_Scan,initT);
+												// RoArmM2_goalPosMove();
+
+    RoArmM2_getPosByServoFeedback();//获取参数
+
+    // jsonCmdReceiveHandler();
+
+    // jsonCmdReceive.clear();
+
+    vTaskDelay(2 / portTICK_PERIOD_MS); // 延迟2ms
   }
 }
 
@@ -181,13 +214,13 @@ void Task2code( void * pvParameters ){
   // Serial.print("Task2 running on core ");
   // Serial.println(xPortGetCoreID());
   for(;;){
-        serialCtrl();
-    RoArmM2_getPosByServoFeedback();//获取参数
-    if (InfoPrint == 2) {
-      RoArmM2_infoFeedback();
-    }
+    
+    serialCtrl();
+    // if (InfoPrint == 2) {
+    //   RoArmM2_infoFeedback();
+    // }
     // Serial.println("This is Task2");
-    vTaskDelay(2000 / portTICK_PERIOD_MS); // 延迟2秒
+    // vTaskDelay(50 / portTICK_PERIOD_MS); // 延迟2ms
   }
 }
 
@@ -235,6 +268,7 @@ void setup() {
   oled_update();
   if(InfoPrint == 1){Serial.println("ServoCtrl init UART2TTL...");}
   RoArmM2_servoInit();
+  pwmServoInit();
 
   // check the status of the servos.
   screenLine_2 = screenLine_3;
