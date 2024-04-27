@@ -101,26 +101,57 @@ bool runNewJsonCmd = false;
 #define ARM_L3_LENGTH_MM_A_1	215.99
 #define ARM_L3_LENGTH_MM_B_1	0
 
-//货架第一层识别动作
+
+
+//左货架第一层识别动作
 #define Shelve_Left_1_inputX_Left_Scan     125
 #define Shelve_Left_1_inputZ_Left_Scan     -140
-//货架第二层识别动作
+//左货架第二层识别动作
 #define Shelve_Left_2_inputX_Left_Scan     58
 #define Shelve_Left_2_inputZ_Left_Scan     60
-//货架第三层识别动作
+//左货架第三层识别动作
 #define Shelve_Left_3_inputX_Left_Scan     58
 #define Shelve_Left_3_inputZ_Left_Scan     60
+//左货架第四层识别动作
+#define Shelve_Left_4_inputX_Left_Scan     58
+#define Shelve_Left_4_inputZ_Left_Scan     60
+
+//右货架第一层识别动作
+#define Shelve_Right_1_inputX_Left_Scan     125
+#define Shelve_Right_1_inputZ_Left_Scan     -140
+//右货架第二层识别动作
+#define Shelve_Right_2_inputX_Left_Scan     58
+#define Shelve_Right_2_inputZ_Left_Scan     60
+//右货架第三层识别动作
+#define Shelve_Right_3_inputX_Left_Scan     58
+#define Shelve_Right_3_inputZ_Left_Scan     60
+//右货架第四层识别动作
+#define Shelve_Right_4_inputX_Left_Scan     58
+#define Shelve_Right_4_inputZ_Left_Scan     60
+
 //清单扫描动作
 #define OCR_inputX     58.25990816
 #define OCR_inputZ     60
 //货物放置动作
 #define PLACE_Left_inputX     58.25990816
-#define PLACE_Left_inputY     50
-#define PLACE_Left_inputZ     60
+#define PLACE_Left_inputY     -20
+#define PLACE_Left_inputZ     100
 
 
+char Shelve_Layer =2; //当前层数
 
+enum ARM_State
+{
+      OCR_SCAN=1,   //OCR识别状态
+	  CARGO_LEFT,   //左货架抓取状态
+	  CARGO_RIGHT,  //右货架抓取状态
+	  SHIFT_L2R,    //左向右自旋
+	  SHIFT_R2L,    //右向左自旋
+	  SHINK_LEFT,   //左边收缩状态
+	  SHINK_RIGHT,  //右边收缩状态
+};
 
+ARM_State ARM_MODE = CARGO_LEFT;
 
 
 

@@ -1119,9 +1119,9 @@ void RoArmM2_allPosAbsBesselCtrl(double inputX, double inputY, double inputZ, do
 
 // 贝塞尔曲线控制，平滑,手腕始终水平
  void MY_RoArmM2_allPosAbsBesselCtrl(double inputX, double inputY, double inputZ, double inputSpd){
-   goalX = inputX;
-   goalY = inputY;
-   goalZ = inputZ;
+   goalX = inputX - 10;
+   goalY = inputY -5;
+   goalZ = inputZ - 20;
    My_RoArmM2_movePosGoalfromLast(inputSpd);
  }
 
@@ -1666,12 +1666,20 @@ void Gripper_Close(int radInput)
   time =0;
 }
 
+
+extern char receive_cmd_flag;
 void Grab_Cargo(void)
 {
-  Gripper_Open(); //张开抓手
+
+  GRAB_ServoCtrl(30);
   MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_2_inputX_Left_Scan + Camera_Input_X, Camera_Input_Y, Shelve_Left_2_inputZ_Left_Scan + Camera_Input_Z + 30, 0.25);
-  Gripper_Close(GRAB_JOINT_PWM); //抓住货物 
+
+  GRAB_ServoCtrl(GRAB_JOINT_PWM);
+  delay(500);
   MY_RoArmM2_allPosAbsBesselCtrl(PLACE_Left_inputX,PLACE_Left_inputY,PLACE_Left_inputZ,0.25); //放置货物预备位置
-  Gripper_Open(); //张开抓手
+  delay(500);
+  GRAB_ServoCtrl(30);
   MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_2_inputX_Left_Scan,0,Shelve_Left_2_inputZ_Left_Scan,0.25); //回到拍摄位置
+
+  
 }

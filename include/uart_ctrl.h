@@ -51,12 +51,19 @@ void jsonCmdReceiveHandler()
 		break;
 
 	case CMD_XYZT_ACQU: // 摄像头坐标
+
+	    Serial.print("CMD\n");  //发送接收完成应答
+		Serial.print("CMD\n");  //发送接收完成应答
+		Serial.print("CMD\n");  //发送接收完成应答
 		Camera_XYZ(
 			jsonCmdReceive["x"],
 			jsonCmdReceive["y"],
 			jsonCmdReceive["z"],
 			jsonCmdReceive["g"]);
+			
+		Shelve_Layer = jsonCmdReceive["L"]; //当前层
 		Grab_Cargo();
+		receive_cmd_flag=1;
 
 		break;
 	case CMD_XYZT_DIRECT_CTRL:
@@ -290,10 +297,10 @@ void serialCtrl()
 			DeserializationError err = deserializeJson(jsonCmdReceive, receivedData);
 			if (err == DeserializationError::Ok)
 			{
-				if (InfoPrint == 1)
-				{
-					Serial.println(receivedData);
-				}
+				// if (InfoPrint == 1)
+				// {
+				// 	Serial.println(receivedData);
+				// }
 
 				Process_flag = 1;
 			}
