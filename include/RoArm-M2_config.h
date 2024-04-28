@@ -85,7 +85,7 @@ bool runNewJsonCmd = false;
 #define ARM_SERVO_ELBOW_INIT_POS     1955 //变大Z-轴往下  1955
 #define ARM_SERVO_WRIST_INIT_POS     2047
 
-#define ARM_SERVO_GRAB_INIT_POS     130  
+#define ARM_SERVO_GRAB_INIT_POS     30  
 #define ARM_SERVO_GRAB_MIN_POS      30  //变小张开
 #define ARM_SERVO_GRAB_MAX_POS      130  //变大闭合
 
@@ -151,7 +151,7 @@ enum ARM_State
 	  SHINK_RIGHT,  //右边收缩状态
 };
 
-ARM_State ARM_MODE = CARGO_LEFT;
+ARM_State ARM_MODE = SHIFT_L2R;
 
 
 

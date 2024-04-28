@@ -48,6 +48,8 @@ int timee = 0;
 // 定义任务函数
 void Task1code(void *pvParameters)
 {
+  static s16 SHIFT_L2R_time = 0;
+  static char SHIFT_L2R_Flag = 0;
 
   for (;;)
   {
@@ -93,8 +95,8 @@ void Task1code(void *pvParameters)
         receive_cmd_flag = 0; // 重新准备接收命令
 
         Serial.print("GF\n"); // 发送抓取完成指令
-        Serial.print("GF\n"); 
-        Serial.print("GF\n"); 
+        Serial.print("GF\n");
+        Serial.print("GF\n");
       }
       break;
     case CARGO_RIGHT:       // 右货架抓取状态
@@ -127,6 +129,26 @@ void Task1code(void *pvParameters)
       }
       break;
     case SHIFT_L2R: // 左向右自旋
+
+      if (SHIFT_L2R_Flag == 0)
+      {
+        SHIFT_L2R_time++;
+
+        if (SHIFT_L2R_time < 800)
+        {
+          RoArmM2_allJointAbsCtrl(0, 0, M_PI / 10, M_PI, 0.36, 1);
+        }
+        else if (SHIFT_L2R_time >= 800 && SHIFT_L2R_time < 1600)
+        {
+          RoArmM2_allJointAbsCtrl(M_PI, 0, M_PI / 10, M_PI, 0.25, 1);
+        }
+        else
+        {
+          SHIFT_L2R_time = 0;
+          SHIFT_L2R_Flag = 1;
+        }
+      }
+
       break;
     case SHIFT_R2L: // 右向左自旋
       break;
