@@ -144,11 +144,12 @@ void Task1code(void *pvParameters)
         }
         else
         {
+          // RoArmM2_baseJointCtrlRad_Right(1,0,0.35,1);
+          // MY_RoArmM2_allPosAbsBesselCtrl_Right(50, 0, Shelve_Right_2_inputZ_Left_Scan, 0.25);
           SHIFT_L2R_time = 0;
           SHIFT_L2R_Flag = 1;
         }
       }
-
       break;
     case SHIFT_R2L: // 右向左自旋
       break;
