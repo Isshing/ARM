@@ -1314,10 +1314,10 @@ void RoArmM2_setJointPID(byte jointInput, float inputP, float inputI, float inpu
 // reset the P&I/PID of RoArm-M2.
 void RoArmM2_resetPID()
 {
-  RoArmM2_setJointPID(BASE_JOINT, 16, 0, 0);
-  RoArmM2_setJointPID(SHOULDER_JOINT, 16, 0, 0);
-  RoArmM2_setJointPID(ELBOW_JOINT, 16, 0, 0);
-  RoArmM2_setJointPID(EOAT_JOINT, 16, 0, 0);
+  RoArmM2_setJointPID(BASE_JOINT, 16, 0.1, 0);
+  RoArmM2_setJointPID(SHOULDER_JOINT, 16, 0.1, 0);
+  RoArmM2_setJointPID(ELBOW_JOINT, 16, 0.1, 0);
+  RoArmM2_setJointPID(EOAT_JOINT, 16, 0.1, 0);
 }
 
 // input the angle in deg, and it returns the number of servo steps.

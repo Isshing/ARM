@@ -80,7 +80,6 @@ void Task1code(void *pvParameters)
           break;
         case 2:
           MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_2_inputX_Left_Scan, 0, Shelve_Left_2_inputZ_Left_Scan, 0.25);
-          // MY_RoArmM2_allPosAbsBesselCtrl(PLACE_Left_inputX, PLACE_Left_inputY, PLACE_Left_inputZ, 0.25); // 放置货物预备位置
           break;
         case 3:
           MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_3_inputX_Left_Scan, 0, Shelve_Left_3_inputZ_Left_Scan, 0.25);
@@ -151,12 +150,11 @@ void Task1code(void *pvParameters)
 
         if (SHIFT_R2L_time < 400)
         {
-          RoArmM2_allJointAbsCtrl(M_PI, 0, M_PI / 10, M_PI, 0, 10); //抬高
+          RoArmM2_allJointAbsCtrl(M_PI, 0, M_PI / 10, M_PI, 0, 10); // 抬高
         }
         else if (SHIFT_R2L_time >= 400 && SHIFT_R2L_time < 800)
         {
-          RoArmM2_allJointAbsCtrl(0, 0, M_PI / 10, M_PI, 0, 10); //基座回去
-
+          RoArmM2_allJointAbsCtrl(0, 0, M_PI / 10, M_PI, 0, 10); // 基座回去
         }
         else
         {
@@ -167,9 +165,17 @@ void Task1code(void *pvParameters)
         }
       }
       break;
-    case SHINK_LEFT: // 左边收缩状态
-      break;
-    case SHINK_RIGHT: // 右边收缩状态
+    case SHINK: // 收缩状态
+                // RoArmM2_allJointAbsCtrl();
+                // MY_RoArmM2_allPosAbsBesselCtrl(Shink_inputX,0,Shink_inputZ,0.25);
+
+      if (Process_flag)
+      {
+        jsonCmdReceiveHandler();
+        jsonCmdReceive.clear(); // 保证执行完Cmd后不会继续重复执行
+        Process_flag = 0;
+        receive_cmd_flag = 0; // 处理完成后，重新准备接收命令
+      }
       break;
 
     default:

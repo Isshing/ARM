@@ -54,39 +54,48 @@ void jsonCmdReceiveHandler()
 
 	case CMD_XYZT_ACQU: // 摄像头坐标
 
-	    Serial.print("CMD\n");  //发送接收完成应答
-		Serial.print("CMD\n");  //发送接收完成应答
-		Serial.print("CMD\n");  //发送接收完成应答
+		Serial.print("CMD\n"); // 发送接收完成应答
+		Serial.print("CMD\n"); // 发送接收完成应答
+		Serial.print("CMD\n"); // 发送接收完成应答
 		Camera_XYZ(
 			jsonCmdReceive["x"],
 			jsonCmdReceive["y"],
 			jsonCmdReceive["z"],
 			jsonCmdReceive["g"]);
-			
-		Shelve_Layer = jsonCmdReceive["L"]; //当前层
 
-		if (Shelve_Layer==1)
+		Shelve_Layer = jsonCmdReceive["L"]; // 当前层
+
+		if (Shelve_Layer == 1)
 		{
 			Grab_Cargo_1();
 		}
-		else if (Shelve_Layer==2)
+		else if (Shelve_Layer == 2)
 		{
 			Grab_Cargo_2();
 		}
-		else if (Shelve_Layer==3)
+		else if (Shelve_Layer == 3)
 		{
 			Grab_Cargo_3();
 		}
 
-		receive_cmd_flag=1;
-		CARGO_LEFT_Flag =0;
+		receive_cmd_flag = 1;
+		CARGO_LEFT_Flag = 0;
 		break;
-	case CMD_OCR_FINISH :  //OCR识别完成
-		ARM_MODE = SHIFT_R2L; //转回去
-		receive_cmd_flag =1;
-		
+	case CMD_OCR_FINISH:	  // OCR识别完成
+		ARM_MODE = SHIFT_R2L; // 转回去
+		receive_cmd_flag = 1;
 		break;
-	
+
+	case CMD_START: // 车辆启动，进入OCR状态
+		ARM_MODE = SHIFT_L2R;
+		receive_cmd_flag = 1;
+		break;
+
+	case CMD_OVER: // 抓取完成，进入收缩状态
+		ARM_MODE = SHINK;
+		receive_cmd_flag = 1;
+		break;
+
 	case CMD_XYZT_DIRECT_CTRL:
 		RoArmM2_baseCoordinateCtrl(
 			jsonCmdReceive["x"],
