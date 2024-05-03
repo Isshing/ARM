@@ -51,7 +51,6 @@ void Task1code(void *pvParameters)
   static s16 SHIFT_L2R_time = 0;
   static char SHIFT_L2R_Flag = 0;
 
-
   for (;;)
   {
 
@@ -139,9 +138,16 @@ void Task1code(void *pvParameters)
         {
           RoArmM2_allJointAbsCtrl(0, 0, M_PI / 10, M_PI, 0.36, 1);
         }
-        else if (SHIFT_L2R_time >= 800 && SHIFT_L2R_time < 1600)
+        else if (SHIFT_L2R_time >= 800 && SHIFT_L2R_time < 2000)
         {
           RoArmM2_allJointAbsCtrl(M_PI, 0, M_PI / 10, M_PI, 0.25, 1);
+        }
+        else if (SHIFT_L2R_time >= 2000 && SHIFT_L2R_time < 3000)
+        {
+
+          // RoArmM2_baseCoordinateCtrl(-150, 0, 50, 0);
+          MY_RoArmM2_allPosAbsBesselCtrl_Right(-150,0,80,0.25);
+          // RoArmM2_goalPosMove();
         }
         else
         {

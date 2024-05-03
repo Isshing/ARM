@@ -347,6 +347,21 @@ int RoArmM2_baseJointCtrlRad(byte returnType, double radInput, u16 speedInput, u
   return goalPos[0];
 }
 
+
+int RoArmM2_baseJointCtrlRad_Right(byte returnType, double radInput, u16 speedInput, u8 accInput)
+{
+  radInput = -constrain(radInput, -M_PI, M_PI);
+  s16 computePos = -calculatePosByRad(radInput) + ARM_SERVO_BASE_INIT_POS_LEFT;
+  goalPos[0] = computePos;
+
+  // goalPos[0] = constrain(goalPos[0], ARM_SERVO_BASE_MIN_POS_LEFT,ARM_SERVO_BASE_MAX_POS_LEFT); //限幅
+
+  if (returnType)
+  {
+    st.WritePosEx(BASE_SERVO_ID, goalPos[0], speedInput, accInput);
+  }
+  return goalPos[0];
+}
 // use this function to compute the servo position to ctrl shoudlder joint.
 // returnType 0: only returns the shoulder joint servo position and save it to goalPos[1] and goalPos[2],
 //               servo will NOT move.
@@ -833,9 +848,21 @@ void RoArmM2_lastPosUpdate()
 // use jointCtrlRad functions to compute goalPos for every servo,
 // then use this function to move the servos.
 // cuz the functions like baseCoordinateCtrl is not gonna make servos move.
-void RoArmM2_goalPosMove()
+void RoArmM2_goalPosMove(void)
 {
   RoArmM2_baseJointCtrlRad(0, BASE_JOINT_RAD, 0, 0);
+  RoArmM2_shoulderJointCtrlRad(0, SHOULDER_JOINT_RAD, 0, 0);
+  RoArmM2_elbowJointCtrlRad(0, ELBOW_JOINT_RAD, 0, 0);
+  if (EEMode == 1)
+  {
+    RoArmM2_handJointCtrlRad(0, EOAT_JOINT_RAD, 0, 0);
+  }
+  st.SyncWritePosEx(servoID, 5, goalPos, moveSpd, moveAcc);
+}
+
+void RoArmM2_goalPosMove_Right(void)
+{
+  RoArmM2_baseJointCtrlRad_Right(0, BASE_JOINT_RAD, 0, 0);
   RoArmM2_shoulderJointCtrlRad(0, SHOULDER_JOINT_RAD, 0, 0);
   RoArmM2_elbowJointCtrlRad(0, ELBOW_JOINT_RAD, 0, 0);
   if (EEMode == 1)
@@ -940,6 +967,13 @@ double besselCtrl(double numStart, double numEnd, double rateInput)
   double numOut;
   numOut = (numEnd - numStart) * ((cos(rateInput * M_PI + M_PI) + 1) / 2) + numStart;
   return numOut;
+}
+
+// 线性插值
+double linear_interpolation(double numStart, double numEnd, double rateInput) {
+    double numOut;
+    numOut = numStart * (1 - rateInput) + numEnd * rateInput;
+    return numOut;
 }
 
 // use this function to get the max deltaSteps.
@@ -1069,6 +1103,90 @@ void My_RoArmM2_movePosGoalfromLast(float spdInput)
   RoArmM2_lastPosUpdate();
 }
 
+// void My_RoArmM2_movePosGoalfromLast_Right(float spdInput)
+// {
+//   double deltaSteps = maxNumInArray();
+
+//   double bufferX;
+//   double bufferY;
+//   double bufferZ;
+
+//   static double bufferLastX;
+//   static double bufferLastY;
+//   static double bufferLastZ;
+
+//   for (double i = 0; i <= 1; i += (1 / (deltaSteps * 1)) * spdInput)
+//   {
+//     bufferX = linear_interpolation(lastX, goalX, i);
+//     bufferY = linear_interpolation(lastY, goalY, i);
+//     bufferZ = linear_interpolation(lastZ, goalZ, i);
+//     My_RoArmM2_baseCoordinateCtrl(bufferX, bufferY, bufferZ);
+//     if (nanIK)
+//     {
+//       // IK failed
+//       goalX = bufferLastX;
+//       goalY = bufferLastY;
+//       goalZ = bufferLastZ;
+//       My_RoArmM2_baseCoordinateCtrl(goalX, goalY, goalZ);
+//       RoArmM2_goalPosMove();
+//       RoArmM2_lastPosUpdate();
+//       return;
+//     }
+//     else
+//     {
+//       // IK succeed.
+//       bufferLastX = bufferX;
+//       bufferLastY = bufferY;
+//       bufferLastZ = bufferZ;
+//     }
+//     RoArmM2_goalPosMove();
+//     delay(2);
+//   }
+//   My_RoArmM2_baseCoordinateCtrl(goalX, goalY, goalZ);
+//   RoArmM2_goalPosMove();
+//   RoArmM2_lastPosUpdate();
+// }
+
+void My_RoArmM2_movePosGoalfromLast_Right(float spdInput)
+{
+  static double currentX = lastX;
+  static double currentY = lastY;
+  static double currentZ = lastZ;
+
+  currentX += (goalX - currentX) * spdInput;
+  currentY += (goalY - currentY) * spdInput;
+  currentZ += (goalZ - currentZ) * spdInput;
+
+  My_RoArmM2_baseCoordinateCtrl(currentX, currentY, currentZ);
+
+  if (nanIK)
+  {
+    // IK failed
+    goalX = lastX;
+    goalY = lastY;
+    goalZ = lastZ;
+    My_RoArmM2_baseCoordinateCtrl(goalX, goalY, goalZ);
+    RoArmM2_goalPosMove();
+    RoArmM2_lastPosUpdate();
+    return;
+  }
+  else
+  {
+    // IK succeed.
+    lastX = currentX;
+    lastY = currentY;
+    lastZ = currentZ;
+  }
+
+  RoArmM2_goalPosMove();
+  delay(2);
+
+  My_RoArmM2_baseCoordinateCtrl(goalX, goalY, goalZ);
+  RoArmM2_goalPosMove();
+  RoArmM2_lastPosUpdate();
+}
+
+
 // ctrl a single axi abs pos(mm).
 // the init position is
 // axiInput: 1-X, posInput:initX
@@ -1123,6 +1241,13 @@ void RoArmM2_allPosAbsBesselCtrl(double inputX, double inputY, double inputZ, do
    goalY = inputY -5;
    goalZ = inputZ - 20;
    My_RoArmM2_movePosGoalfromLast(inputSpd);
+ }
+
+  void MY_RoArmM2_allPosAbsBesselCtrl_Right(double inputX, double inputY, double inputZ, double inputSpd){
+   goalX = inputX - 10;
+   goalY = inputY -5;
+   goalZ = inputZ - 20;
+   My_RoArmM2_movePosGoalfromLast_Right(inputSpd);
  }
 
 // ChatGPT prompt:
@@ -1614,6 +1739,7 @@ void RoArmM2_Test_drawCircleYZ()
   }
 }
 
+
 void Camera_XYZ(double inputx, double inputy, double inputz,int grab_pwm)
 {
   Camera_Input_X = inputx;
@@ -1683,3 +1809,6 @@ void Grab_Cargo(void)
 
   
 }
+
+
+
