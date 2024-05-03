@@ -74,6 +74,8 @@
 #define CMD_XYZT_ACQU      986
 // // // // // // // // // // // // // // // // // // // // //
 
+#define CMD_OCR_FINISH     987
+
 // {"T":1041,"x":235,"y":0,"z":234,"t":3.14}
 #define CMD_XYZT_DIRECT_CTRL 1041
 

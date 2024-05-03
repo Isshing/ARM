@@ -832,7 +832,7 @@ void My_RoArmM2_baseCoordinateCtrl(double inputX, double inputY, double inputZ)
   {
     cartesian_to_polar(inputX, inputY, &base_r, &BASE_JOINT_RAD); // 将输入的X和Y坐标转换为基座关节的极坐标（半径和角度）。
     simpleLinkageIkRad(l2, l3, base_r, inputZ);                   // 根据输入的半径和Z坐标，计算并控制基座关节的角度。
-    RoArmM2_handJointCtrlRad(0, 4.71238898038- SHOULDER_JOINT_RAD - ELBOW_JOINT_RAD, 0, 0);  //M_PI * 3 / 2 - SHOULDER_JOINT_RAD - ELBOW_JOINT_RAD
+    RoArmM2_handJointCtrlRad(0, 4.8- SHOULDER_JOINT_RAD - ELBOW_JOINT_RAD, 0, 0);  //M_PI * 3 / 2 - SHOULDER_JOINT_RAD - ELBOW_JOINT_RAD
   }
 }
 
@@ -1794,20 +1794,69 @@ void Gripper_Close(int radInput)
 
 
 extern char receive_cmd_flag;
-void Grab_Cargo(void)
+void Grab_Cargo_1(void)
 {
 
   GRAB_ServoCtrl(30);
-  MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_2_inputX_Left_Scan + Camera_Input_X, Camera_Input_Y, Shelve_Left_2_inputZ_Left_Scan + Camera_Input_Z + 30, 0.25);
+  //180为爪子到货物距离
+  MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_1_inputX_Left_Scan + 180 , Camera_Input_Y, Shelve_Left_1_inputZ_Left_Scan + Camera_Input_Z-30, 0.25);
 
   GRAB_ServoCtrl(GRAB_JOINT_PWM);
   delay(500);
-  MY_RoArmM2_allPosAbsBesselCtrl(PLACE_Left_inputX,PLACE_Left_inputY,PLACE_Left_inputZ,0.25); //放置货物预备位置
+  MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_1_inputX_Left_Scan + 180 ,0,Shelve_Left_1_inputZ_Left_Scan + Camera_Input_Z +30,0.25); //抬高一点，避免撞塑料
+  delay(200);
+  MY_RoArmM2_allPosAbsBesselCtrl(PLACE_Left_inputX,0,Shelve_Left_1_inputZ_Left_Scan + Camera_Input_Z+40,0.25); //Z轴平行收缩，避免撞货架,40是稍微上升一点
+  delay(200);
+  MY_RoArmM2_allPosAbsBesselCtrl(PLACE_Left_inputX,0,PLACE_Left_inputZ,0.25); //然后再上升高度
+  delay(200);
+  MY_RoArmM2_allPosAbsBesselCtrl(PLACE_Left_inputX,PLACE_Left_inputY,PLACE_Left_inputZ,0.25); //最后Y轴平移
   delay(500);
   GRAB_ServoCtrl(30);
-  MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_2_inputX_Left_Scan,0,Shelve_Left_2_inputZ_Left_Scan,0.25); //回到拍摄位置
+  MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_1_inputX_Left_Scan,0,PLACE_Left_inputZ,0.25); //避免回去阶段撞箱
+  delay(500);
+  MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_1_inputX_Left_Scan,0,Shelve_Left_1_inputZ_Left_Scan,0.25); //回到拍摄位置
+}
 
-  
+void Grab_Cargo_2(void)
+{
+
+  GRAB_ServoCtrl(30);
+  //180为爪子到货物距离
+  MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_2_inputX_Left_Scan + 200 , Camera_Input_Y, Shelve_Left_2_inputZ_Left_Scan + Camera_Input_Z, 0.25);
+
+  GRAB_ServoCtrl(GRAB_JOINT_PWM);
+  delay(500);
+  MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_2_inputX_Left_Scan + 200 ,0,Shelve_Left_2_inputZ_Left_Scan + Camera_Input_Z +30,0.25); //抬高一点，避免撞塑料
+  delay(200);
+  MY_RoArmM2_allPosAbsBesselCtrl(PLACE_Left_inputX,0,Shelve_Left_2_inputZ_Left_Scan + Camera_Input_Z+40,0.25); //Z轴平行收缩，避免撞货架
+  delay(200);
+  MY_RoArmM2_allPosAbsBesselCtrl(PLACE_Left_inputX,0,PLACE_Left_inputZ,0.25); //然后再上升高度
+  delay(200);
+  MY_RoArmM2_allPosAbsBesselCtrl(PLACE_Left_inputX,PLACE_Left_inputY,PLACE_Left_inputZ,0.25); //最后Y轴平移
+  delay(500);
+  GRAB_ServoCtrl(30);
+  MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_2_inputX_Left_Scan,0,PLACE_Left_inputZ,0.25); //避免回去阶段撞箱
+  delay(500);
+  MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_2_inputX_Left_Scan,0,Shelve_Left_2_inputZ_Left_Scan,0.25); //回到拍摄位置
+}
+
+void Grab_Cargo_3(void)
+{
+
+  GRAB_ServoCtrl(30);
+  //180为爪子到货物距离
+  MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_3_inputX_Left_Scan + 180 , Camera_Input_Y, Shelve_Left_3_inputZ_Left_Scan + Camera_Input_Z, 0.25);
+
+  GRAB_ServoCtrl(GRAB_JOINT_PWM);
+  delay(500);
+  MY_RoArmM2_allPosAbsBesselCtrl(PLACE_Left_inputX,0,Shelve_Left_3_inputZ_Left_Scan + Camera_Input_Z,0.25); //Z轴平行收缩，避免撞货架
+  MY_RoArmM2_allPosAbsBesselCtrl(PLACE_Left_inputX,0,PLACE_Left_inputZ,0.25); //然后再上升高度
+  MY_RoArmM2_allPosAbsBesselCtrl(PLACE_Left_inputX,PLACE_Left_inputY,PLACE_Left_inputZ,0.25); //最后Y轴平移
+  delay(500);
+  GRAB_ServoCtrl(30);
+  MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_3_inputX_Left_Scan,0,PLACE_Left_inputZ,0.25); //避免回去阶段撞箱
+  delay(500);
+  MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_3_inputX_Left_Scan,0,Shelve_Left_3_inputZ_Left_Scan,0.25); //回到拍摄位置
 }
 
 

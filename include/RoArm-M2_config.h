@@ -102,10 +102,9 @@ bool runNewJsonCmd = false;
 #define ARM_L3_LENGTH_MM_B_1	0
 
 
-
 //左货架第一层识别动作
-#define Shelve_Left_1_inputX_Left_Scan     125
-#define Shelve_Left_1_inputZ_Left_Scan     -140
+#define Shelve_Left_1_inputX_Left_Scan     58
+#define Shelve_Left_1_inputZ_Left_Scan     20
 //左货架第二层识别动作
 #define Shelve_Left_2_inputX_Left_Scan     58
 #define Shelve_Left_2_inputZ_Left_Scan     60
@@ -133,17 +132,16 @@ bool runNewJsonCmd = false;
 #define OCR_inputX     58.25990816
 #define OCR_inputZ     60
 //货物放置动作
-#define PLACE_Left_inputX     58.25990816
-#define PLACE_Left_inputY     -20
-#define PLACE_Left_inputZ     100
+#define PLACE_Left_inputX     60
+#define PLACE_Left_inputY     -85
+#define PLACE_Left_inputZ     240
 
 
 char Shelve_Layer =2; //当前层数
 
 enum ARM_State
 {
-      OCR_SCAN=1,   //OCR识别状态
-	  CARGO_LEFT,   //左货架抓取状态
+	  CARGO_LEFT=1,   //左货架抓取状态
 	  CARGO_RIGHT,  //右货架抓取状态
 	  SHIFT_L2R,    //左向右自旋
 	  SHIFT_R2L,    //右向左自旋

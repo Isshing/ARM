@@ -44,12 +44,15 @@ TaskHandle_t Task1;
 TaskHandle_t Task2;
 
 int timee = 0;
+char CARGO_LEFT_Flag = 0;
 
 // 定义任务函数
 void Task1code(void *pvParameters)
 {
   static s16 SHIFT_L2R_time = 0;
+  static s16 SHIFT_R2L_time = 0;
   static char SHIFT_L2R_Flag = 0;
+  static char SHIFT_R2L_Flag = 0;
 
   for (;;)
   {
@@ -66,27 +69,30 @@ void Task1code(void *pvParameters)
 
     switch (ARM_MODE)
     {
-    case OCR_SCAN: // OCR识别状态
-      MY_RoArmM2_allPosAbsBesselCtrl(OCR_inputX, 0, OCR_inputZ, 0.25);
-      break;
     case CARGO_LEFT: // 左货架抓取状态
 
-      switch (Shelve_Layer) // 回到检视状态
+      if (CARGO_LEFT_Flag == 0)
       {
-      case 1:
-        MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_1_inputX_Left_Scan, 0, Shelve_Left_1_inputZ_Left_Scan, 0.25);
-        break;
-      case 2:
-        MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_2_inputX_Left_Scan, 0, Shelve_Left_2_inputZ_Left_Scan, 0.25);
-        break;
-      case 3:
-        MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_3_inputX_Left_Scan, 0, Shelve_Left_3_inputZ_Left_Scan, 0.25);
-        break;
-      case 4:
-        MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_4_inputX_Left_Scan, 0, Shelve_Left_4_inputZ_Left_Scan, 0.25);
-      default:
-        break;
+        switch (Shelve_Layer) // 回到检视状态
+        {
+        case 1:
+          MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_1_inputX_Left_Scan, 0, Shelve_Left_1_inputZ_Left_Scan, 0.25);
+          break;
+        case 2:
+          MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_2_inputX_Left_Scan, 0, Shelve_Left_2_inputZ_Left_Scan, 0.25);
+          // MY_RoArmM2_allPosAbsBesselCtrl(PLACE_Left_inputX, PLACE_Left_inputY, PLACE_Left_inputZ, 0.25); // 放置货物预备位置
+          break;
+        case 3:
+          MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_3_inputX_Left_Scan, 0, Shelve_Left_3_inputZ_Left_Scan, 0.25);
+          break;
+        case 4:
+          MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_4_inputX_Left_Scan, 0, Shelve_Left_4_inputZ_Left_Scan, 0.25);
+        default:
+          break;
+        }
+        CARGO_LEFT_Flag = 1;
       }
+
       if (Process_flag)
       {
         jsonCmdReceiveHandler();
@@ -98,35 +104,7 @@ void Task1code(void *pvParameters)
         Serial.print("GF\n");
         Serial.print("GF\n");
       }
-      break;
-    case CARGO_RIGHT:       // 右货架抓取状态
-      switch (Shelve_Layer) // 回到检视状态
-      {
-      case 1:
-        MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Right_1_inputX_Left_Scan, 0, Shelve_Right_1_inputZ_Left_Scan, 0.25);
-        break;
-      case 2:
-        MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Right_2_inputX_Left_Scan, 0, Shelve_Right_2_inputZ_Left_Scan, 0.25);
-        break;
-      case 3:
-        MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Right_3_inputX_Left_Scan, 0, Shelve_Right_3_inputZ_Left_Scan, 0.25);
-        break;
-      case 4:
-        MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Right_4_inputX_Left_Scan, 0, Shelve_Right_4_inputZ_Left_Scan, 0.25);
-      default:
-        break;
-      }
-      if (Process_flag)
-      {
-        jsonCmdReceiveHandler();
-        jsonCmdReceive.clear(); // 保证执行完Cmd后不会继续重复执行
-        Process_flag = 0;
-        receive_cmd_flag = 0; // 重新准备接收命令
 
-        Serial.print("GF\n"); // 发送抓取完成指令
-        Serial.print("GF\n"); // 发送抓取完成指令
-        Serial.print("GF\n"); // 发送抓取完成指令
-      }
       break;
     case SHIFT_L2R: // 左向右自旋
 
@@ -134,20 +112,21 @@ void Task1code(void *pvParameters)
       {
         SHIFT_L2R_time++;
 
-        if (SHIFT_L2R_time < 800)
+        if (SHIFT_L2R_time < 400)
         {
-          RoArmM2_allJointAbsCtrl(0, 0, M_PI / 10, M_PI, 0.36, 1);
+          RoArmM2_allJointAbsCtrl(0, 0, M_PI / 10, M_PI, 0, 10);
         }
-        else if (SHIFT_L2R_time >= 800 && SHIFT_L2R_time < 2000)
+        else if (SHIFT_L2R_time >= 400 && SHIFT_L2R_time < 800)
         {
-          RoArmM2_allJointAbsCtrl(M_PI, 0, M_PI / 10, M_PI, 0.25, 1);
+          RoArmM2_allJointAbsCtrl(M_PI, 0, M_PI / 10, M_PI, 0, 10);
         }
-        else if (SHIFT_L2R_time >= 2000 && SHIFT_L2R_time < 3000)
+        else if (SHIFT_L2R_time >= 800 && SHIFT_L2R_time < 1500)
         {
-
-          // RoArmM2_baseCoordinateCtrl(-150, 0, 50, 0);
-          MY_RoArmM2_allPosAbsBesselCtrl_Right(-150,0,80,0.25);
-          // RoArmM2_goalPosMove();
+          RoArmM2_allJointAbsCtrl(M_PI, 0, M_PI / 3, 1.4 * M_PI, 0, 10);
+        }
+        else if (SHIFT_L2R_time >= 1500 && SHIFT_L2R_time < 2000)
+        {
+          RoArmM2_allJointAbsCtrl(M_PI, M_PI / 8, M_PI / 3, 1.4 * M_PI, 0, 10);
         }
         else
         {
@@ -156,8 +135,37 @@ void Task1code(void *pvParameters)
         }
       }
 
+      if (Process_flag)
+      {
+        jsonCmdReceiveHandler();
+        jsonCmdReceive.clear(); // 保证执行完Cmd后不会继续重复执行
+        Process_flag = 0;
+        receive_cmd_flag = 0; // 处理完成后，重新准备接收命令
+      }
+
       break;
     case SHIFT_R2L: // 右向左自旋
+      if (SHIFT_R2L_Flag == 0)
+      {
+        SHIFT_R2L_time++;
+
+        if (SHIFT_R2L_time < 400)
+        {
+          RoArmM2_allJointAbsCtrl(M_PI, 0, M_PI / 10, M_PI, 0, 10); //抬高
+        }
+        else if (SHIFT_R2L_time >= 400 && SHIFT_R2L_time < 800)
+        {
+          RoArmM2_allJointAbsCtrl(0, 0, M_PI / 10, M_PI, 0, 10); //基座回去
+
+        }
+        else
+        {
+          MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_1_inputX_Left_Scan, 0, Shelve_Left_1_inputZ_Left_Scan, 0.25);
+          SHIFT_R2L_time = 0;
+          SHIFT_R2L_Flag = 1;
+          ARM_MODE = CARGO_LEFT;
+        }
+      }
       break;
     case SHINK_LEFT: // 左边收缩状态
       break;

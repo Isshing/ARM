@@ -1,6 +1,8 @@
 #ifndef __UART_CTRL_H__
 #define __UART_CTRL_H__
 
+extern char CARGO_LEFT_Flag;
+
 void jsonCmdReceiveHandler()
 {
 	int cmdType = jsonCmdReceive["T"].as<int>();
@@ -62,10 +64,29 @@ void jsonCmdReceiveHandler()
 			jsonCmdReceive["g"]);
 			
 		Shelve_Layer = jsonCmdReceive["L"]; //当前层
-		Grab_Cargo();
-		receive_cmd_flag=1;
 
+		if (Shelve_Layer==1)
+		{
+			Grab_Cargo_1();
+		}
+		else if (Shelve_Layer==2)
+		{
+			Grab_Cargo_2();
+		}
+		else if (Shelve_Layer==3)
+		{
+			Grab_Cargo_3();
+		}
+
+		receive_cmd_flag=1;
+		CARGO_LEFT_Flag =0;
 		break;
+	case CMD_OCR_FINISH :  //OCR识别完成
+		ARM_MODE = SHIFT_R2L; //转回去
+		receive_cmd_flag =1;
+		
+		break;
+	
 	case CMD_XYZT_DIRECT_CTRL:
 		RoArmM2_baseCoordinateCtrl(
 			jsonCmdReceive["x"],
