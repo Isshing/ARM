@@ -1103,89 +1103,6 @@ void My_RoArmM2_movePosGoalfromLast(float spdInput)
   RoArmM2_lastPosUpdate();
 }
 
-// void My_RoArmM2_movePosGoalfromLast_Right(float spdInput)
-// {
-//   double deltaSteps = maxNumInArray();
-
-//   double bufferX;
-//   double bufferY;
-//   double bufferZ;
-
-//   static double bufferLastX;
-//   static double bufferLastY;
-//   static double bufferLastZ;
-
-//   for (double i = 0; i <= 1; i += (1 / (deltaSteps * 1)) * spdInput)
-//   {
-//     bufferX = linear_interpolation(lastX, goalX, i);
-//     bufferY = linear_interpolation(lastY, goalY, i);
-//     bufferZ = linear_interpolation(lastZ, goalZ, i);
-//     My_RoArmM2_baseCoordinateCtrl(bufferX, bufferY, bufferZ);
-//     if (nanIK)
-//     {
-//       // IK failed
-//       goalX = bufferLastX;
-//       goalY = bufferLastY;
-//       goalZ = bufferLastZ;
-//       My_RoArmM2_baseCoordinateCtrl(goalX, goalY, goalZ);
-//       RoArmM2_goalPosMove();
-//       RoArmM2_lastPosUpdate();
-//       return;
-//     }
-//     else
-//     {
-//       // IK succeed.
-//       bufferLastX = bufferX;
-//       bufferLastY = bufferY;
-//       bufferLastZ = bufferZ;
-//     }
-//     RoArmM2_goalPosMove();
-//     delay(2);
-//   }
-//   My_RoArmM2_baseCoordinateCtrl(goalX, goalY, goalZ);
-//   RoArmM2_goalPosMove();
-//   RoArmM2_lastPosUpdate();
-// }
-
-void My_RoArmM2_movePosGoalfromLast_Right(float spdInput)
-{
-  static double currentX = lastX;
-  static double currentY = lastY;
-  static double currentZ = lastZ;
-
-  currentX += (goalX - currentX) * spdInput;
-  currentY += (goalY - currentY) * spdInput;
-  currentZ += (goalZ - currentZ) * spdInput;
-
-  My_RoArmM2_baseCoordinateCtrl(currentX, currentY, currentZ);
-
-  if (nanIK)
-  {
-    // IK failed
-    goalX = lastX;
-    goalY = lastY;
-    goalZ = lastZ;
-    My_RoArmM2_baseCoordinateCtrl(goalX, goalY, goalZ);
-    RoArmM2_goalPosMove();
-    RoArmM2_lastPosUpdate();
-    return;
-  }
-  else
-  {
-    // IK succeed.
-    lastX = currentX;
-    lastY = currentY;
-    lastZ = currentZ;
-  }
-
-  RoArmM2_goalPosMove();
-  delay(2);
-
-  My_RoArmM2_baseCoordinateCtrl(goalX, goalY, goalZ);
-  RoArmM2_goalPosMove();
-  RoArmM2_lastPosUpdate();
-}
-
 
 // ctrl a single axi abs pos(mm).
 // the init position is
@@ -1241,13 +1158,6 @@ void RoArmM2_allPosAbsBesselCtrl(double inputX, double inputY, double inputZ, do
    goalY = inputY;
    goalZ = inputZ - 20;
    My_RoArmM2_movePosGoalfromLast(inputSpd);
- }
-
-  void MY_RoArmM2_allPosAbsBesselCtrl_Right(double inputX, double inputY, double inputZ, double inputSpd){
-   goalX = inputX - 10;
-   goalY = inputY -5;
-   goalZ = inputZ - 20;
-   My_RoArmM2_movePosGoalfromLast_Right(inputSpd);
  }
 
 // ChatGPT prompt:

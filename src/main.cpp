@@ -83,7 +83,9 @@ void Task1code(void *pvParameters)
 
           break;
         case 2:
+
           MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_2_inputX_Left_Scan, 0, Shelve_Left_2_inputZ_Left_Scan, 0.25);
+
           break;
 
         case 3:
@@ -102,18 +104,21 @@ void Task1code(void *pvParameters)
         switch (Shelve_Layer) // 回到检视状态
         {
         case 1:
-          MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_1_inputX_Left_Scan, 0, Shelve_Left_1_inputZ_Left_Scan, 0.25);
-
+          RoArmM2_allJointAbsCtrl(0, -0.25, 3.01, 2.20, 0, 10); // Rad显示参数和贝塞尔曲线的结果是一致的，坐标不一致
+          Grab_Record = 0;
           break;
         case 2:
-          RoArmM2_allJointAbsCtrl(0, -0.28, 3.01, 2.20, 0, 10); // Rad显示参数和贝塞尔曲线的结果是一致的，坐标不一致
+          RoArmM2_allJointAbsCtrl(0, -0.25, 3.01, 2.20, 0, 10); // Rad显示参数和贝塞尔曲线的结果是一致的，坐标不一致
+          Grab_Record = 0;
           break;
 
         case 3:
-          MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_3_inputX_Left_Scan, 0, Shelve_Left_3_inputZ_Left_Scan, 0.25);
+          RoArmM2_allJointAbsCtrl(0, -0.25, 3.01, 2.20, 0, 10); // Rad显示参数和贝塞尔曲线的结果是一致的，坐标不一致
+          Grab_Record = 0;
           break;
         case 4:
-          MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_4_inputX_Left_Scan, 0, Shelve_Left_4_inputZ_Left_Scan, 0.25);
+          RoArmM2_allJointAbsCtrl(0, -0.25, 3.01, 2.20, 0, 10); // Rad显示参数和贝塞尔曲线的结果是一致的，坐标不一致
+          Grab_Record = 0;
         default:
           break;
         }
@@ -123,6 +128,7 @@ void Task1code(void *pvParameters)
       {
         jsonCmdReceiveHandler();
         jsonCmdReceive.clear(); // 保证执行完Cmd后不会继续重复执行
+
         Process_flag = 0;
         receive_cmd_flag = 0; // 重新准备接收命令
 

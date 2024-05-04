@@ -82,7 +82,7 @@ void jsonCmdReceiveHandler()
 		}
 		CARGO_LEFT_Flag = 0;
 		receive_cmd_flag = 1;
-		Grab_Record =1;
+		Grab_Record =1; //调整Wrist水平
 	
 		break;
 	case CMD_OCR_FINISH:	   // OCR识别完成
