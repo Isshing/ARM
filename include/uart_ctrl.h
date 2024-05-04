@@ -2,9 +2,10 @@
 #define __UART_CTRL_H__
 
 extern char CARGO_LEFT_Flag;
-extern char SHINK_Flag; 
-extern char SHIFT_R2L_Flag; 
+extern char SHINK_Flag;
+extern char SHIFT_R2L_Flag;
 extern char SHIFT_L2R_Flag;
+extern char Grab_Record;
 
 void jsonCmdReceiveHandler()
 {
@@ -58,8 +59,6 @@ void jsonCmdReceiveHandler()
 	case CMD_XYZT_ACQU: // 摄像头坐标
 
 		Serial.print("CMD\n"); // 发送接收完成应答
-		Serial.print("CMD\n"); // 发送接收完成应答
-		Serial.print("CMD\n"); // 发送接收完成应答
 		Camera_XYZ(
 			jsonCmdReceive["x"],
 			jsonCmdReceive["y"],
@@ -75,31 +74,36 @@ void jsonCmdReceiveHandler()
 		else if (Shelve_Layer == 2)
 		{
 			Grab_Cargo_2();
+			// calibration();
 		}
 		else if (Shelve_Layer == 3)
 		{
 			Grab_Cargo_3();
 		}
-
-		receive_cmd_flag = 1;
 		CARGO_LEFT_Flag = 0;
+		receive_cmd_flag = 1;
+		Grab_Record =1;
+	
 		break;
-	case CMD_OCR_FINISH:	  // OCR识别完成
-		ARM_MODE = SHIFT_R2L; // 转回去
-		SHIFT_R2L_Flag =0;
+	case CMD_OCR_FINISH:	   // OCR识别完成
+		Serial.print("CMD\n"); // 发送接收完成应答
+		ARM_MODE = SHIFT_R2L;  // 转回去
+		SHIFT_R2L_Flag = 0;
 		receive_cmd_flag = 1;
 		break;
 
-	case CMD_START: // 车辆启动，进入OCR状态
+	case CMD_START:			   // 车辆启动，进入OCR状态
+		Serial.print("CMD\n"); // 发送接收完成应答
 		ARM_MODE = SHIFT_L2R;
-		SHIFT_L2R_Flag =0;
+		SHIFT_L2R_Flag = 0;
 		receive_cmd_flag = 1;
 		break;
 
-	case CMD_OVER: // 抓取完成，进入收缩状态
+	case CMD_OVER:			   // 抓取完成，进入收缩状态
+		Serial.print("CMD\n"); // 发送接收完成应答
 		ARM_MODE = SHINK;
 		receive_cmd_flag = 1;
-		SHINK_Flag =0;
+		SHINK_Flag = 0;
 		break;
 
 	case CMD_XYZT_DIRECT_CTRL:

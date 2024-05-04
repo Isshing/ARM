@@ -48,6 +48,7 @@ char CARGO_LEFT_Flag = 0;
 char SHINK_Flag = 0;
 char SHIFT_R2L_Flag = 0;
 char SHIFT_L2R_Flag = 0;
+char Grab_Record = 0; // 补偿抓取后抓手不水平Flag
 
 // 定义任务函数
 void Task1code(void *pvParameters)
@@ -79,10 +80,12 @@ void Task1code(void *pvParameters)
         {
         case 1:
           MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_1_inputX_Left_Scan, 0, Shelve_Left_1_inputZ_Left_Scan, 0.25);
+
           break;
         case 2:
           MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_2_inputX_Left_Scan, 0, Shelve_Left_2_inputZ_Left_Scan, 0.25);
           break;
+
         case 3:
           MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_3_inputX_Left_Scan, 0, Shelve_Left_3_inputZ_Left_Scan, 0.25);
           break;
@@ -94,6 +97,28 @@ void Task1code(void *pvParameters)
         CARGO_LEFT_Flag = 1;
       }
 
+      if (Grab_Record == 1)
+      {
+        switch (Shelve_Layer) // 回到检视状态
+        {
+        case 1:
+          MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_1_inputX_Left_Scan, 0, Shelve_Left_1_inputZ_Left_Scan, 0.25);
+
+          break;
+        case 2:
+          RoArmM2_allJointAbsCtrl(0, -0.28, 3.01, 2.20, 0, 10); // Rad显示参数和贝塞尔曲线的结果是一致的，坐标不一致
+          break;
+
+        case 3:
+          MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_3_inputX_Left_Scan, 0, Shelve_Left_3_inputZ_Left_Scan, 0.25);
+          break;
+        case 4:
+          MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_4_inputX_Left_Scan, 0, Shelve_Left_4_inputZ_Left_Scan, 0.25);
+        default:
+          break;
+        }
+      }
+
       if (Process_flag)
       {
         jsonCmdReceiveHandler();
@@ -102,8 +127,6 @@ void Task1code(void *pvParameters)
         receive_cmd_flag = 0; // 重新准备接收命令
 
         Serial.print("GF\n"); // 发送抓取完成指令
-        Serial.print("GF\n");
-        Serial.print("GF\n");
       }
 
       break;
@@ -176,13 +199,11 @@ void Task1code(void *pvParameters)
         {
           RoArmM2_allJointAbsCtrl(0, -M_PI / 22, M_PI * 1.05, M_PI * 0.4, 0, 10);
         }
-        else 
+        else
         {
           SHINK_Flag = 1;
           SHINK_time = 0;
         }
-
-
       }
 
       if (Process_flag)

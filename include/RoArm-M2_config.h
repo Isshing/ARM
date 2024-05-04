@@ -71,7 +71,7 @@ bool runNewJsonCmd = false;
 #define ARM_SERVO_INIT_SPEED   600
 #define ARM_SERVO_INIT_ACC      20//加速度
 
-#define ARM_SERVO_BASE_INIT_POS_LEFT     2050  //2050
+#define ARM_SERVO_BASE_INIT_POS_LEFT     2080  //2050
 #define ARM_SERVO_BASE_MIN_POS_LEFT      2600 //往右
 #define ARM_SERVO_BASE_MAX_POS_LEFT      1450 //往左
 
@@ -117,14 +117,15 @@ bool runNewJsonCmd = false;
 
 //货物放置动作
 #define PLACE_Left_inputX     60
-#define PLACE_Left_inputY     -85
+#define PLACE_Left_inputY     -90
 #define PLACE_Left_inputZ     240
 
 
-char Shelve_Layer =3; //当前层数
+char Shelve_Layer =2; //当前层数
 
 enum ARM_State
 {
+
 	  CARGO_LEFT=1,   //左货架抓取状态
 	  SHIFT_L2R,    //左向右自旋
 	  SHIFT_R2L,    //右向左自旋
