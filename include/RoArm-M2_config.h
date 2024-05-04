@@ -109,8 +109,8 @@ bool runNewJsonCmd = false;
 #define Shelve_Left_2_inputX_Left_Scan     58
 #define Shelve_Left_2_inputZ_Left_Scan     60
 //左货架第三层识别动作
-#define Shelve_Left_3_inputX_Left_Scan     58
-#define Shelve_Left_3_inputZ_Left_Scan     60
+#define Shelve_Left_3_inputX_Left_Scan     88
+#define Shelve_Left_3_inputZ_Left_Scan     110
 //左货架第四层识别动作
 #define Shelve_Left_4_inputX_Left_Scan     58
 #define Shelve_Left_4_inputZ_Left_Scan     60
@@ -121,7 +121,7 @@ bool runNewJsonCmd = false;
 #define PLACE_Left_inputZ     240
 
 
-char Shelve_Layer =2; //当前层数
+char Shelve_Layer =3; //当前层数
 
 enum ARM_State
 {
@@ -131,7 +131,7 @@ enum ARM_State
 	  SHINK,   //收缩状态
 };
 
-ARM_State ARM_MODE = SHIFT_L2R;
+ARM_State ARM_MODE = CARGO_LEFT;
 
 
 

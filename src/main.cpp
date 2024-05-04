@@ -45,14 +45,16 @@ TaskHandle_t Task2;
 
 int timee = 0;
 char CARGO_LEFT_Flag = 0;
+char SHINK_Flag = 0;
+char SHIFT_R2L_Flag = 0;
+char SHIFT_L2R_Flag = 0;
 
 // 定义任务函数
 void Task1code(void *pvParameters)
 {
   static s16 SHIFT_L2R_time = 0;
   static s16 SHIFT_R2L_time = 0;
-  static char SHIFT_L2R_Flag = 0;
-  static char SHIFT_R2L_Flag = 0;
+  static s16 SHINK_time = 0;
 
   for (;;)
   {
@@ -166,8 +168,22 @@ void Task1code(void *pvParameters)
       }
       break;
     case SHINK: // 收缩状态
-                // RoArmM2_allJointAbsCtrl();
-                // MY_RoArmM2_allPosAbsBesselCtrl(Shink_inputX,0,Shink_inputZ,0.25);
+
+      if (SHINK_Flag == 0)
+      {
+        SHINK_time++;
+        if (SHIFT_R2L_time <= 400)
+        {
+          RoArmM2_allJointAbsCtrl(0, -M_PI / 22, M_PI * 1.05, M_PI * 0.4, 0, 10);
+        }
+        else 
+        {
+          SHINK_Flag = 1;
+          SHINK_time = 0;
+        }
+
+
+      }
 
       if (Process_flag)
       {

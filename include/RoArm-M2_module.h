@@ -271,14 +271,14 @@ void RoArmM2_moveInit()
   {
     Serial.println("Moving SHOULDER_JOINT to initPos.");
   }
-  st.WritePosEx(SHOULDER_DRIVING_SERVO_ID, ARM_SERVO_SHOULDER_INIT_POS, ARM_SERVO_INIT_SPEED, ARM_SERVO_INIT_ACC);
+  st.WritePosEx(SHOULDER_DRIVING_SERVO_ID, 1870, ARM_SERVO_INIT_SPEED, ARM_SERVO_INIT_ACC);
 
   // check SHOULDER_DRIVEING_SERVO position.
   if (InfoPrint == 1)
   {
     Serial.println("...");
   }
-  waitMove2Goal(SHOULDER_DRIVING_SERVO_ID, ARM_SERVO_SHOULDER_INIT_POS, 30);
+  waitMove2Goal(SHOULDER_DRIVING_SERVO_ID, 1870, 30);
 
   // wait for the jitter to go away.
   delay(1200);
@@ -303,14 +303,14 @@ void RoArmM2_moveInit()
   {
     Serial.println("Moving ELBOW_SERVO to middle position.");
   }
-  st.WritePosEx(ELBOW_SERVO_ID, ARM_SERVO_ELBOW_INIT_POS, ARM_SERVO_INIT_SPEED, ARM_SERVO_INIT_ACC);
-  waitMove2Goal(ELBOW_SERVO_ID, ARM_SERVO_MIDDLE_POS, 20);
+  st.WritePosEx(ELBOW_SERVO_ID, 3030, ARM_SERVO_INIT_SPEED, ARM_SERVO_INIT_ACC);
+  waitMove2Goal(ELBOW_SERVO_ID, 3030, 20);
 
   if (InfoPrint == 1)
   {
     Serial.println("Moving GRIPPER_SERVO to middle position.");
   }
-  st.WritePosEx(GRIPPER_SERVO_ID, ARM_SERVO_WRIST_INIT_POS, ARM_SERVO_INIT_SPEED, ARM_SERVO_INIT_ACC);
+  st.WritePosEx(GRIPPER_SERVO_ID, ARM_SERVO_WRIST_INIT_POS*0.4, ARM_SERVO_INIT_SPEED, ARM_SERVO_INIT_ACC);
 
   delay(1000);
 
@@ -832,7 +832,7 @@ void My_RoArmM2_baseCoordinateCtrl(double inputX, double inputY, double inputZ)
   {
     cartesian_to_polar(inputX, inputY, &base_r, &BASE_JOINT_RAD); // 将输入的X和Y坐标转换为基座关节的极坐标（半径和角度）。
     simpleLinkageIkRad(l2, l3, base_r, inputZ);                   // 根据输入的半径和Z坐标，计算并控制基座关节的角度。
-    RoArmM2_handJointCtrlRad(0, 4.8- SHOULDER_JOINT_RAD - ELBOW_JOINT_RAD, 0, 0);  //M_PI * 3 / 2 - SHOULDER_JOINT_RAD - ELBOW_JOINT_RAD
+    RoArmM2_handJointCtrlRad(0, 4.9- SHOULDER_JOINT_RAD - ELBOW_JOINT_RAD, 0, 0);  //M_PI * 3 / 2 - SHOULDER_JOINT_RAD - ELBOW_JOINT_RAD
   }
 }
 

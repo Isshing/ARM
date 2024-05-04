@@ -2,6 +2,9 @@
 #define __UART_CTRL_H__
 
 extern char CARGO_LEFT_Flag;
+extern char SHINK_Flag; 
+extern char SHIFT_R2L_Flag; 
+extern char SHIFT_L2R_Flag;
 
 void jsonCmdReceiveHandler()
 {
@@ -83,17 +86,20 @@ void jsonCmdReceiveHandler()
 		break;
 	case CMD_OCR_FINISH:	  // OCR识别完成
 		ARM_MODE = SHIFT_R2L; // 转回去
+		SHIFT_R2L_Flag =0;
 		receive_cmd_flag = 1;
 		break;
 
 	case CMD_START: // 车辆启动，进入OCR状态
 		ARM_MODE = SHIFT_L2R;
+		SHIFT_L2R_Flag =0;
 		receive_cmd_flag = 1;
 		break;
 
 	case CMD_OVER: // 抓取完成，进入收缩状态
 		ARM_MODE = SHINK;
 		receive_cmd_flag = 1;
+		SHINK_Flag =0;
 		break;
 
 	case CMD_XYZT_DIRECT_CTRL:
