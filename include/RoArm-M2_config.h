@@ -132,7 +132,7 @@ enum ARM_State
 	  SHINK,   //收缩状态
 };
 
-ARM_State ARM_MODE = CARGO_LEFT;
+ARM_State ARM_MODE = SHINK;
 
 
 
