@@ -186,7 +186,7 @@ void RoArmM2_servoInit()
   }
   if (InfoPrint == 1)
   {
-    Serial.println("ServoCtrl init succeed.");
+    // Serial.println("ServoCtrl init succeed.");
   }
 }
 
@@ -201,27 +201,6 @@ void RoArmM2_initCheck(bool returnType)
                              getFeedback(SHOULDER_DRIVING_SERVO_ID, true) &&
                              getFeedback(SHOULDER_DRIVEN_SERVO_ID, true) &&
                              getFeedback(ELBOW_SERVO_ID, true);
-  if (!returnType)
-  {
-    if (InfoPrint == 1 || RoArmM2_initCheckSucceed)
-    {
-      Serial.println("All bus servos status checked.");
-    }
-    else if (InfoPrint == 1 || !RoArmM2_initCheckSucceed)
-    {
-      Serial.println("Bus servos status check: failed.");
-    }
-  }
-  else if (returnType && RoArmM2_initCheckSucceed)
-  {
-  }
-  else if (returnType && !RoArmM2_initCheckSucceed)
-  {
-    if (InfoPrint == 1)
-    {
-      Serial.println("Check failed.");
-    }
-  }
 }
 
 // set all servos PID as the RoArm-M2 settings.
@@ -245,40 +224,40 @@ void RoArmM2_moveInit()
   {
     if (InfoPrint == 1)
     {
-      Serial.println("Init failed, skip moveInit.");
+      // Serial.println("Init failed, skip moveInit.");
     }
     return;
   }
   else if (InfoPrint == 1)
   {
-    Serial.println("Stop moving to initPos.");
+    // Serial.println("Stop moving to initPos.");
   }
 
   // move BASE_SERVO to middle position.
   if (InfoPrint == 1)
   {
-    Serial.println("Moving BASE_JOINT to initPos.");
+    // Serial.println("Moving BASE_JOINT to initPos.");
   }
   st.WritePosEx(BASE_SERVO_ID, ARM_SERVO_BASE_INIT_POS_LEFT, ARM_SERVO_INIT_SPEED, ARM_SERVO_INIT_ACC);
 
   // release SHOULDER_DRIVEN_SERVO torque.
   if (InfoPrint == 1)
   {
-    Serial.println("Unlock the torque of SHOULDER_DRIVEN_SERVO.");
+    // Serial.println("Unlock the torque of SHOULDER_DRIVEN_SERVO.");
   }
   servoTorqueCtrl(SHOULDER_DRIVEN_SERVO_ID, 0);
 
   // move SHOULDER_DRIVING_SERVO to middle position.
   if (InfoPrint == 1)
   {
-    Serial.println("Moving SHOULDER_JOINT to initPos.");
+    // Serial.println("Moving SHOULDER_JOINT to initPos.");
   }
   st.WritePosEx(SHOULDER_DRIVING_SERVO_ID, 1870, ARM_SERVO_INIT_SPEED, ARM_SERVO_INIT_ACC);
 
   // check SHOULDER_DRIVEING_SERVO position.
   if (InfoPrint == 1)
   {
-    Serial.println("...");
+    // Serial.println("...");
   }
   waitMove2Goal(SHOULDER_DRIVING_SERVO_ID, 1870, 30);
 
@@ -288,14 +267,14 @@ void RoArmM2_moveInit()
   // set the position as the middle of the SHOULDER_DRIVEN_SERVO.
   if (InfoPrint == 1)
   {
-    Serial.println("Set this pos as the middle pos for SHOULDER_DRIVEN_SERVO.");
+    // Serial.println("Set this pos as the middle pos for SHOULDER_DRIVEN_SERVO.");
   }
   setMiddlePos(SHOULDER_DRIVEN_SERVO_ID);
 
   // SHOULDER_DRIVEN_SERVO starts producing torque.
   if (InfoPrint == 1)
   {
-    Serial.println("SHOULDER_DRIVEN_SERVO starts producing torque.");
+    // Serial.println("SHOULDER_DRIVEN_SERVO starts producing torque.");
   }
   servoTorqueCtrl(SHOULDER_DRIVEN_SERVO_ID, 1);
   delay(10);
@@ -303,14 +282,14 @@ void RoArmM2_moveInit()
   // move ELBOW_SERVO to middle position.
   if (InfoPrint == 1)
   {
-    Serial.println("Moving ELBOW_SERVO to middle position.");
+    // Serial.println("Moving ELBOW_SERVO to middle position.");
   }
   st.WritePosEx(ELBOW_SERVO_ID, 3030, ARM_SERVO_INIT_SPEED, ARM_SERVO_INIT_ACC);
   waitMove2Goal(ELBOW_SERVO_ID, 3030, 20);
 
   if (InfoPrint == 1)
   {
-    Serial.println("Moving GRIPPER_SERVO to middle position.");
+    // Serial.println("Moving GRIPPER_SERVO to middle position.");
   }
   st.WritePosEx(GRIPPER_SERVO_ID, ARM_SERVO_WRIST_INIT_POS * 0.4, ARM_SERVO_INIT_SPEED, ARM_SERVO_INIT_ACC);
 
@@ -840,7 +819,7 @@ void My_RoArmM2_baseCoordinateCtrl(double inputX, double inputY, double inputZ)
     }
     else if (Grab_Flag == 1) // 向上一点
     {
-      RoArmM2_handJointCtrlRad(0, M_PI * 1.1 - SHOULDER_JOINT_RAD - ELBOW_JOINT_RAD * 0.935, 0, 0); // M_PI * 3 / 2 - SHOULDER_JOINT_RAD - ELBOW_JOINT_RAD
+      RoArmM2_handJointCtrlRad(0, M_PI * 1.4 - SHOULDER_JOINT_RAD - ELBOW_JOINT_RAD * 0.935, 0, 0); // M_PI * 3 / 2 - SHOULDER_JOINT_RAD - ELBOW_JOINT_RAD
     }
     else if (Grab_Flag == 2) // 往下一点
     {
@@ -1718,14 +1697,14 @@ void Grab_Cargo_1(void)
 
   GRAB_ServoCtrl(30);
   // 180为爪子到货物距离
-  MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_1_inputX_Left_Scan + 180, Camera_Input_Y, Shelve_Left_1_inputZ_Left_Scan + Camera_Input_Z - 30, 0.25);
+  MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_1_inputX_Left_Scan + 180+Camera_Input_X, Camera_Input_Y, Shelve_Left_1_inputZ_Left_Scan + Camera_Input_Z - 30, 0.25);
 
   GRAB_ServoCtrl(GRAB_JOINT_PWM);
   delay(500);
   Grab_Flag = 1;
-  MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_1_inputX_Left_Scan + 180, Camera_Input_Y, Shelve_Left_1_inputZ_Left_Scan + Camera_Input_Z - 30, 0.25);
+  MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_1_inputX_Left_Scan + 180+Camera_Input_X, Camera_Input_Y, Shelve_Left_1_inputZ_Left_Scan + Camera_Input_Z - 30, 0.25);
   delay(200);
-  MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_1_inputX_Left_Scan + 180, 0, Shelve_Left_1_inputZ_Left_Scan + Camera_Input_Z + 30, 0.25); // 抬高一点，避免撞塑料
+  MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_1_inputX_Left_Scan + 180+Camera_Input_X, 0, Shelve_Left_1_inputZ_Left_Scan + Camera_Input_Z + 30, 0.25); // 抬高一点，避免撞塑料
   delay(200);
   MY_RoArmM2_allPosAbsBesselCtrl(PLACE_Left_inputX, 0, Shelve_Left_1_inputZ_Left_Scan + Camera_Input_Z + 40, 0.25); // Z轴平行收缩，避免撞货架,40是稍微上升一点
   delay(200);
@@ -1743,20 +1722,22 @@ void Grab_Cargo_1(void)
 void Grab_Cargo_2(void)
 {
 
-  GRAB_ServoCtrl(30);
+  GRAB_ServoCtrl(60);//爪子收一点避免撞附近货物
   // 180为爪子到货物距离
-  MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_2_inputX_Left_Scan + 200, Camera_Input_Y, Shelve_Left_2_inputZ_Left_Scan + Camera_Input_Z - 30, 0.25);
-
+  Grab_Flag = 2;
+  MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_2_inputX_Left_Scan + 200+ Camera_Input_X, Camera_Input_Y, Shelve_Left_2_inputZ_Left_Scan + Camera_Input_Z+30 , 0.25);
   GRAB_ServoCtrl(GRAB_JOINT_PWM);
   delay(500);
   Grab_Flag = 1;
-  MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_2_inputX_Left_Scan + 200, Camera_Input_Y, Shelve_Left_2_inputZ_Left_Scan + Camera_Input_Z - 30, 0.25);
+  MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_2_inputX_Left_Scan + 200+Camera_Input_X, Camera_Input_Y, Shelve_Left_2_inputZ_Left_Scan + Camera_Input_Z+30 , 0.25);
   delay(200);
-  MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_2_inputX_Left_Scan + 200, 0, Shelve_Left_2_inputZ_Left_Scan + Camera_Input_Z + 30, 0.25); // 抬高一点，避免撞塑料
+  MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_2_inputX_Left_Scan + 200+Camera_Input_X, Camera_Input_Y, Shelve_Left_2_inputZ_Left_Scan + Camera_Input_Z + 10, 0.25); // 抬高一点，避免撞塑料
   delay(200);
-  MY_RoArmM2_allPosAbsBesselCtrl(PLACE_Left_inputX, 0, Shelve_Left_2_inputZ_Left_Scan + Camera_Input_Z + 40, 0.25); // Z轴平行收缩，避免撞货架
+  MY_RoArmM2_allPosAbsBesselCtrl(PLACE_Left_inputX, Camera_Input_Y/2, Shelve_Left_2_inputZ_Left_Scan + Camera_Input_Z + 10, 0.25); // Z轴平行收缩，避免撞货架
   delay(200);
   Grab_Flag = 0;
+  MY_RoArmM2_allPosAbsBesselCtrl(PLACE_Left_inputX, 0, Shelve_Left_2_inputZ_Left_Scan + Camera_Input_Z + 10, 0.25); // 基座回正
+  delay(200);
   MY_RoArmM2_allPosAbsBesselCtrl(PLACE_Left_inputX, 0, PLACE_Left_inputZ, 0.25); // 然后再上升高度
   delay(200);
   MY_RoArmM2_allPosAbsBesselCtrl(PLACE_Left_inputX, PLACE_Left_inputY, PLACE_Left_inputZ, 0.25); // 最后Y轴平移
@@ -1770,14 +1751,14 @@ void Grab_Cargo_2(void)
 void Grab_Cargo_3(void)
 {
 
-  GRAB_ServoCtrl(30);
+  GRAB_ServoCtrl(60); 
   // 180为爪子到货物距离
-  MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_3_inputX_Left_Scan + 180, Camera_Input_Y, Shelve_Left_3_inputZ_Left_Scan + Camera_Input_Z - 30, 0.25);
+  MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_3_inputX_Left_Scan + 180+Camera_Input_X, Camera_Input_Y, Shelve_Left_3_inputZ_Left_Scan + Camera_Input_Z - 30, 0.25);
 
   GRAB_ServoCtrl(GRAB_JOINT_PWM);
   delay(500);
   Grab_Flag = 1;
-  MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_3_inputX_Left_Scan + 200, Camera_Input_Y, Shelve_Left_3_inputZ_Left_Scan + Camera_Input_Z - 30, 0.25);
+  MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_3_inputX_Left_Scan + 180+Camera_Input_X, Camera_Input_Y, Shelve_Left_3_inputZ_Left_Scan + Camera_Input_Z - 30, 0.25);
   delay(200);
   MY_RoArmM2_allPosAbsBesselCtrl(PLACE_Left_inputX, 0, Shelve_Left_3_inputZ_Left_Scan + Camera_Input_Z, 0.25); // Z轴平行收缩，避免撞货架
   delay(200);

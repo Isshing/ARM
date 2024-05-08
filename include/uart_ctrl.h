@@ -57,7 +57,6 @@ void jsonCmdReceiveHandler()
 		break;
 
 	case CMD_XYZT_ACQU: // 摄像头坐标
-
 		Serial.print("CMD\n"); // 发送接收完成应答
 		Camera_XYZ(
 			jsonCmdReceive["x"],
@@ -343,6 +342,7 @@ void serialCtrl()
 				// }
 
 				Process_flag = 1;
+				// Serial.print("CMD\n"); // 发送接收完成应答
 			}
 			else
 			{

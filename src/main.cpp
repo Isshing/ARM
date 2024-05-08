@@ -84,7 +84,8 @@ void Task1code(void *pvParameters)
           break;
         case 2:
 
-          MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_2_inputX_Left_Scan, 0, Shelve_Left_2_inputZ_Left_Scan, 0.25);
+          // MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_2_inputX_Left_Scan, 0, Shelve_Left_2_inputZ_Left_Scan, 0.25);
+          RoArmM2_allJointAbsCtrl(0, -0.275, 3.01, 2.3, 0, 10); // Rad显示参数和贝塞尔曲线的结果是一致的，坐标不一致
 
           break;
 
@@ -108,7 +109,7 @@ void Task1code(void *pvParameters)
           Grab_Record = 0;
           break;
         case 2:
-          RoArmM2_allJointAbsCtrl(0, -0.25, 3.01, 2.20, 0, 10); // Rad显示参数和贝塞尔曲线的结果是一致的，坐标不一致
+          RoArmM2_allJointAbsCtrl(0, -0.275, 3.01, 2.3, 0, 10); // Rad显示参数和贝塞尔曲线的结果是一致的，坐标不一致
           Grab_Record = 0;
           break;
 
@@ -122,6 +123,7 @@ void Task1code(void *pvParameters)
         default:
           break;
         }
+        Serial.print("GF\n"); // 发送抓取完成指令
       }
 
       if (Process_flag)
@@ -132,7 +134,6 @@ void Task1code(void *pvParameters)
         Process_flag = 0;
         receive_cmd_flag = 0; // 重新准备接收命令
 
-        Serial.print("GF\n"); // 发送抓取完成指令
       }
 
       break;
@@ -179,19 +180,21 @@ void Task1code(void *pvParameters)
       {
         SHIFT_R2L_time++;
 
-        if (SHIFT_R2L_time < 400)
+        if (SHIFT_R2L_time < 300)
         {
           RoArmM2_allJointAbsCtrl(M_PI, 0, M_PI / 10, M_PI, 0, 10); // 抬高
         }
-        else if (SHIFT_R2L_time >= 400 && SHIFT_R2L_time < 800)
+        else if (SHIFT_R2L_time >= 300 && SHIFT_R2L_time < 600)
         {
           RoArmM2_allJointAbsCtrl(0, 0, M_PI / 10, M_PI, 0, 10); // 基座回去
         }
         else
         {
+
           MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_1_inputX_Left_Scan, 0, Shelve_Left_1_inputZ_Left_Scan, 0.25);
           SHIFT_R2L_time = 0;
           SHIFT_R2L_Flag = 1;
+          Serial.print("SF\n"); // 发送旋转完成信号
           ARM_MODE = CARGO_LEFT;
         }
       }
@@ -237,6 +240,7 @@ void Task2code(void *pvParameters)
     if (receive_cmd_flag == 0) // 等待接收命令
     {
       serialCtrl();
+
     }
 
     String X_Show = (String)goalX;
@@ -307,8 +311,8 @@ void setup()
 
   RoArmM2_dynamicAdaptation(0, ST_TORQUE_MAX, ST_TORQUE_MAX, ST_TORQUE_MAX, ST_TORQUE_MAX); // 自动外力适应
 
-  createMission("boot", "these cmds run automatically at boot.");
-  missionPlay("boot", 1);
+  // createMission("boot", "these cmds run automatically at boot.");
+  // missionPlay("boot", 1);
 
   // 创建任务
   xTaskCreatePinnedToCore(

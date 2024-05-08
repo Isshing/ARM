@@ -118,7 +118,7 @@ bool runNewJsonCmd = false;
 //货物放置动作
 #define PLACE_Left_inputX     60
 #define PLACE_Left_inputY     -90
-#define PLACE_Left_inputZ     240
+#define PLACE_Left_inputZ     140
 
 
 char Shelve_Layer =2; //当前层数

@@ -5,11 +5,11 @@ bool flashStatus = false;
 // initialize littleFS for flash file system ctrl.
 void initFS() {
 	if (!LittleFS.begin(true)){
-		if (InfoPrint == 1) {Serial.println("LittleFS mount failed.");}
+		// if (InfoPrint == 1) {Serial.println("LittleFS mount failed.");}
 		flashStatus = false;
 	}
 	else {
-		if (InfoPrint == 1) {Serial.println("LittleFS mount succeed.");}
+		// if (InfoPrint == 1) {Serial.println("LittleFS mount succeed.");}
 		flashStatus = true;
 	}
 }
