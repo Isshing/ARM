@@ -79,6 +79,8 @@
 #define CMD_START          988  //车辆启动，进入OCR状态
 
 #define CMD_OVER           989  //抓取结束，进入收缩状态
+
+#define CMD_UP_DOWN        990  //调整高度时提前准备好检视状态
 // {"T":1041,"x":235,"y":0,"z":234,"t":3.14}
 #define CMD_XYZT_DIRECT_CTRL 1041
 
