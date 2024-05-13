@@ -237,33 +237,63 @@ void RoArmM2_moveInit()
   }
 
   // move BASE_SERVO to middle position.
-
+  if (InfoPrint == 1)
+  {
+    // Serial.println("Moving BASE_JOINT to initPos.");
+  }
   st.WritePosEx(BASE_SERVO_ID, ARM_SERVO_BASE_INIT_POS_LEFT, ARM_SERVO_INIT_SPEED, ARM_SERVO_INIT_ACC);
 
-
+  // release SHOULDER_DRIVEN_SERVO torque.
+  if (InfoPrint == 1)
+  {
+    // Serial.println("Unlock the torque of SHOULDER_DRIVEN_SERVO.");
+  }
   servoTorqueCtrl(SHOULDER_DRIVEN_SERVO_ID, 0);
 
   // move SHOULDER_DRIVING_SERVO to middle position.
-
+  if (InfoPrint == 1)
+  {
+    // Serial.println("Moving SHOULDER_JOINT to initPos.");
+  }
   st.WritePosEx(SHOULDER_DRIVING_SERVO_ID, 1870, ARM_SERVO_INIT_SPEED, ARM_SERVO_INIT_ACC);
 
   // check SHOULDER_DRIVEING_SERVO position.
+  if (InfoPrint == 1)
+  {
+    // Serial.println("...");
+  }
   waitMove2Goal(SHOULDER_DRIVING_SERVO_ID, 1870, 30);
 
   // wait for the jitter to go away.
   delay(1200);
-  
+
+  // set the position as the middle of the SHOULDER_DRIVEN_SERVO.
+  if (InfoPrint == 1)
+  {
+    // Serial.println("Set this pos as the middle pos for SHOULDER_DRIVEN_SERVO.");
+  }
   setMiddlePos(SHOULDER_DRIVEN_SERVO_ID);
 
+  // SHOULDER_DRIVEN_SERVO starts producing torque.
+  if (InfoPrint == 1)
+  {
+    // Serial.println("SHOULDER_DRIVEN_SERVO starts producing torque.");
+  }
   servoTorqueCtrl(SHOULDER_DRIVEN_SERVO_ID, 1);
   delay(10);
 
-    // move ELBOW_SERVO to middle position.
-
+  // move ELBOW_SERVO to middle position.
+  if (InfoPrint == 1)
+  {
+    // Serial.println("Moving ELBOW_SERVO to middle position.");
+  }
   st.WritePosEx(ELBOW_SERVO_ID, 2900, ARM_SERVO_INIT_SPEED, ARM_SERVO_INIT_ACC);
   waitMove2Goal(ELBOW_SERVO_ID, 2900, 20);
-  delay(500);
 
+  if (InfoPrint == 1)
+  {
+    // Serial.println("Moving GRIPPER_SERVO to middle position.");
+  }
   st.WritePosEx(GRIPPER_SERVO_ID, ARM_SERVO_WRIST_INIT_POS * 0.6, ARM_SERVO_INIT_SPEED, ARM_SERVO_INIT_ACC);
 
   delay(1000);
@@ -1143,9 +1173,9 @@ void RoArmM2_allPosAbsBesselCtrl(double inputX, double inputY, double inputZ, do
 // 贝塞尔曲线控制，平滑,手腕始终水平
 void MY_RoArmM2_allPosAbsBesselCtrl(double inputX, double inputY, double inputZ, double inputSpd)
 {
-  goalX = inputX - 10;
+  goalX = inputX -30;
   goalY = inputY;
-  goalZ = inputZ - 20;
+  goalZ = inputZ +50;
   My_RoArmM2_movePosGoalfromLast(inputSpd);
 }
 

@@ -60,7 +60,7 @@ bool runNewJsonCmd = false;
 //       [11]
 #define BASE_SERVO_ID    11
 #define SHOULDER_DRIVING_SERVO_ID 12//驱动
-#define SHOULDER_DRIVEN_SERVO_ID  13//从动
+#define SHOULDER_DRIVEN_SERVO_ID  1//从动
 #define ELBOW_SERVO_ID   14
 #define GRIPPER_SERVO_ID 15
 

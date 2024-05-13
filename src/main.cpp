@@ -85,16 +85,18 @@ void Task1code(void *pvParameters)
         switch (Shelve_Layer) // 回到检视状态
         {
         case 1:
-          MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_1_inputX_Left_Scan, 3, Shelve_Left_1_inputZ_Left_Scan, 0.25);
+          // MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_1_inputX_Left_Scan, 3, Shelve_Left_1_inputZ_Left_Scan, 0.25);
 
-          delay(1000);
+          // delay(1000);
           RoArmM2_allJointAbsCtrl(0.058, 0.96, 2.84, 1.15, 0, 20);
 
           break;
         case 2:
 
           // MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_2_inputX_Left_Scan, 0, Shelve_Left_2_inputZ_Left_Scan, 0.25);
-          RoArmM2_allJointAbsCtrl(0, -0.275, 3.01, 2.2, 0, 20); // Rad显示参数和贝塞尔曲线的结果是一致的，坐标不一致
+          // RoArmM2_allJointAbsCtrl(0, -0.275, 3.01, 2.2, 0, 20); // Rad显示参数和贝塞尔曲线的结果是一致的，坐标不一致
+
+          MY_RoArmM2_allPosAbsBesselCtrl(120, 0, 120, 0.25);
           break;
 
         case 3:
@@ -181,15 +183,15 @@ void Task1code(void *pvParameters)
       //     test_flag = 1;
       //   }
       // }
-      if (test_time >= 1000)
-      {
+      // if (test_time >= 1000)
+      // {
 
-        Camera_XYZ(0, 0, 0, 140);
-        Grab_Cargo_2();
-        CARGO_LEFT_Flag = 0;
-        Grab_Record = 1; // 调整Wrist水平
-        test_time=0;
-      }
+      //   Camera_XYZ(0, 0, 0, 140);
+      //   Grab_Cargo_2();
+      //   CARGO_LEFT_Flag = 0;
+      //   Grab_Record = 1; // 调整Wrist水平
+      //   test_time=0;
+      // }
 
       break;
     case SHIFT_L2R: // 左向右自旋
@@ -283,6 +285,9 @@ void Task1code(void *pvParameters)
         Process_flag = 0;
         receive_cmd_flag = 0; // 处理完成后，重新准备接收命令
       }
+
+
+
       break;
 
     default:
@@ -344,6 +349,7 @@ void Task2code(void *pvParameters)
   }
 }
 
+
 void setup()
 {
 
@@ -376,7 +382,7 @@ void setup()
     screenLine_2 = "Bus servos: " +
                    servoFeedback[BASE_SERVO_ID - 11].status +
                    servoFeedback[SHOULDER_DRIVING_SERVO_ID - 11].status +
-                   servoFeedback[SHOULDER_DRIVEN_SERVO_ID - 11].status +
+                   servoFeedback[SHOULDER_DRIVEN_SERVO_ID + 1].status +
                    servoFeedback[ELBOW_SERVO_ID - 11].status +
                    servoFeedback[GRIPPER_SERVO_ID - 11].status;
   }
