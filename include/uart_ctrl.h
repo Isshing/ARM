@@ -35,7 +35,11 @@ void jsonCmdReceiveHandler()
 		}
 		else if (Shelve_Layer == 3)
 		{
-			Grab_Cargo_3();
+			Grab_Cargo_2();
+		}
+		else if (Shelve_Layer == 4)
+		{
+			Grab_Cargo_4();
 		}
 		CARGO_LEFT_Flag = 0;
 		receive_cmd_flag = 1;
@@ -66,6 +70,10 @@ void jsonCmdReceiveHandler()
 	case CMD_UP_DOWN:          //调整高度时提前准备好检视状态
 		Serial.print("CMD\n"); // 发送接收完成应答
 		Shelve_Layer = jsonCmdReceive["L"];
+		if (Shelve_Layer==1)
+		{
+			Serial.print("SF\n");
+		}
 		ARM_MODE=CARGO_LEFT;
 		CARGO_LEFT_Flag =0; 
 	}

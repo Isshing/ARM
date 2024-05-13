@@ -69,7 +69,7 @@ bool runNewJsonCmd = false;
 #define ARM_SERVO_POS_RANGE   4096
 #define ARM_SERVO_ANGLE_RANGE  360
 #define ARM_SERVO_INIT_SPEED   600
-#define ARM_SERVO_INIT_ACC      20//加速度
+#define ARM_SERVO_INIT_ACC     20//加速度
 
 #define ARM_SERVO_BASE_INIT_POS_LEFT     2080  //2050
 #define ARM_SERVO_BASE_MIN_POS_LEFT      2600 //往右
@@ -103,17 +103,17 @@ bool runNewJsonCmd = false;
 
 
 //左货架第一层识别动作
-#define Shelve_Left_1_inputX_Left_Scan     70
-#define Shelve_Left_1_inputZ_Left_Scan     -10
+#define Shelve_Left_1_inputX_Left_Scan     90
+#define Shelve_Left_1_inputZ_Left_Scan     -40
 //左货架第二层识别动作
 #define Shelve_Left_2_inputX_Left_Scan     58
 #define Shelve_Left_2_inputZ_Left_Scan     60
 //左货架第三层识别动作
-#define Shelve_Left_3_inputX_Left_Scan     88
-#define Shelve_Left_3_inputZ_Left_Scan     110
+#define Shelve_Left_3_inputX_Left_Scan     58
+#define Shelve_Left_3_inputZ_Left_Scan     60
 //左货架第四层识别动作
-#define Shelve_Left_4_inputX_Left_Scan     58
-#define Shelve_Left_4_inputZ_Left_Scan     60
+#define Shelve_Left_4_inputX_Left_Scan     120
+#define Shelve_Left_4_inputZ_Left_Scan     350
 
 //货物放置动作
 #define PLACE_Left_inputX     60
@@ -125,14 +125,13 @@ bool runNewJsonCmd = false;
 
 enum ARM_State
 {
-
       CARGO_LEFT=1,   //左货架抓取状态
 	  SHIFT_L2R,    //左向右自旋
 	  SHIFT_R2L,    //右向左自旋
 	  SHINK,   //收缩状态
 };
 
-ARM_State ARM_MODE = SHINK;
+ARM_State ARM_MODE = CARGO_LEFT;
 
 
 

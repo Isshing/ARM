@@ -9,7 +9,7 @@ bool moveToStep(String inputName, int inputStepNum);
 // mission abort after serial received anything.
 bool serialMissionAbort() {
 	if (Serial.available()) {
-		if (InfoPrint == 1) {Serial.println("[missionPlay abort.]");}
+		// if (InfoPrint == 1) {Serial.println("[missionPlay abort.]");}
 		return true;
 	} else {
 		return false;
@@ -39,8 +39,8 @@ int missionContent(String inputName) {
 		return -1;
 	}
 
-	Serial.println("---=== File Content ===---");
-	Serial.println("reading file: [" + inputName + "] starts:\n");
+	// Serial.println("---=== File Content ===---");
+	// Serial.println("reading file: [" + inputName + "] starts:\n");
 	String mission_intro = file.readStringUntil('\n');
 	Serial.println(mission_intro);
 	
@@ -227,22 +227,22 @@ bool moveToStep(String inputName, int inputStepNum) {
 	DeserializationError err = deserializeJson(jsonCmdReceive, stepStringBuffer);
 	if (err == DeserializationError::Ok) {
 		if (InfoPrint == 1) {
-			Serial.println("[json parsing succeed.]");
-			Serial.println("[import a step]");
-			Serial.print("[mission name]: ");Serial.println(inputName);
-			Serial.print("[stepNum]: ");Serial.println(inputStepNum);
-			Serial.print("[cmd]: ");Serial.println(stepStringBuffer);
+			// Serial.println("[json parsing succeed.]");
+			// Serial.println("[import a step]");
+			// Serial.print("[mission name]: ");Serial.println(inputName);
+			// Serial.print("[stepNum]: ");Serial.println(inputStepNum);
+			// Serial.print("[cmd]: ");Serial.println(stepStringBuffer);
 		}
 		jsonCmdReceiveHandler();
 		if (InfoPrint == 1) {
-			Serial.println("[step finished]");
+			// Serial.println("[step finished]");
 		}
 		jsonInfoSend.clear();
 		return true;
 	} else {
 		jsonInfoSend.clear();
 		if (InfoPrint == 1) {
-			Serial.println("[deserializeJson err]");
+			// Serial.println("[deserializeJson err]");
 		}
 		return false;
 	}
@@ -258,12 +258,12 @@ void missionPlay(String inputName, int repeatTimes) {
 	while (1) {
 		currentTimes++;
 		if (currentTimes > repeatTimes && repeatTimes != -1) {
-			if (InfoPrint == 1) {Serial.println("[missionPlay finished.]");}
+			// if (InfoPrint == 1) {Serial.println("[missionPlay finished.]");}
 			return;
 		}
 		if (InfoPrint == 1) {
-			Serial.print("---\n[currentTimes: ");Serial.print(currentTimes);
-			Serial.println(" ]");
+			// Serial.print("---\n[currentTimes: ");Serial.print(currentTimes);
+			// Serial.println(" ]");
 		}
 
 		for (int i = 1; i<=_LineNum; i++) {
