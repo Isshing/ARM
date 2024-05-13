@@ -93,10 +93,10 @@ void Task1code(void *pvParameters)
           break;
         case 2:
 
-          // MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_2_inputX_Left_Scan, 0, Shelve_Left_2_inputZ_Left_Scan, 0.25);
+          MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_2_inputX_Left_Scan, 0, Shelve_Left_2_inputZ_Left_Scan, 0.25);
           // RoArmM2_allJointAbsCtrl(0, -0.275, 3.01, 2.2, 0, 20); // Rad显示参数和贝塞尔曲线的结果是一致的，坐标不一致
 
-          MY_RoArmM2_allPosAbsBesselCtrl(120, 0, 120, 0.25);
+          // MY_RoArmM2_allPosAbsBesselCtrl(120, 0, 120, 0.25);
           break;
 
         case 3:
@@ -286,8 +286,6 @@ void Task1code(void *pvParameters)
         receive_cmd_flag = 0; // 处理完成后，重新准备接收命令
       }
 
-
-
       break;
 
     default:
@@ -382,7 +380,7 @@ void setup()
     screenLine_2 = "Bus servos: " +
                    servoFeedback[BASE_SERVO_ID - 11].status +
                    servoFeedback[SHOULDER_DRIVING_SERVO_ID - 11].status +
-                   servoFeedback[SHOULDER_DRIVEN_SERVO_ID + 1].status +
+                   servoFeedback[SHOULDER_DRIVEN_SERVO_ID - 11].status +
                    servoFeedback[ELBOW_SERVO_ID - 11].status +
                    servoFeedback[GRIPPER_SERVO_ID - 11].status;
   }

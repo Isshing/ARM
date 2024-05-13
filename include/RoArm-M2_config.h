@@ -60,7 +60,7 @@ bool runNewJsonCmd = false;
 //       [11]
 #define BASE_SERVO_ID    11
 #define SHOULDER_DRIVING_SERVO_ID 12//驱动
-#define SHOULDER_DRIVEN_SERVO_ID  1//从动
+#define SHOULDER_DRIVEN_SERVO_ID  13//从动
 #define ELBOW_SERVO_ID   14
 #define GRIPPER_SERVO_ID 15
 
@@ -80,9 +80,9 @@ bool runNewJsonCmd = false;
 #define ARM_SERVO_BASE_MAX_POS_RIGHT      2050
 
 // #define ARM_SERVO_SHOULDER_INIT_POS  1500 //变小逆时针   2030
-#define ARM_SERVO_SHOULDER_INIT_POS  2030 //变小逆时针   2030
+#define ARM_SERVO_SHOULDER_INIT_POS  1960 //变小逆时针   2030
 // #define ARM_SERVO_ELBOW_INIT_POS     2550 //变大Z-轴往下  1955
-#define ARM_SERVO_ELBOW_INIT_POS     1955 //变大Z-轴往下  1955
+#define ARM_SERVO_ELBOW_INIT_POS     1940 //变大Z-轴往下  1955
 #define ARM_SERVO_WRIST_INIT_POS     2047
 
 #define ARM_SERVO_GRAB_INIT_POS     30  
@@ -119,8 +119,6 @@ bool runNewJsonCmd = false;
 #define PLACE_Left_inputX     60
 #define PLACE_Left_inputY     -90
 #define PLACE_Left_inputZ     140
-
-
 
 
 enum ARM_State
