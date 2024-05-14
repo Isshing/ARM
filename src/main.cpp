@@ -52,7 +52,7 @@ char SHIFT_R2L_Flag = 0;
 char SHIFT_L2R_Flag = 0;
 char Grab_Record = 0; // 补偿抓取后抓手不水平Flag
 
-int Shelve_Layer = 2; // 当前层数
+int Shelve_Layer = 1; // 当前层数
 
 // 定义任务函数
 void Task1code(void *pvParameters)
@@ -64,7 +64,6 @@ void Task1code(void *pvParameters)
 
   for (;;)
   {
-
     unsigned long curr_time = millis();
 
     if (curr_time - prev_time >= 10)
@@ -88,26 +87,32 @@ void Task1code(void *pvParameters)
           // MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_1_inputX_Left_Scan, 3, Shelve_Left_1_inputZ_Left_Scan, 0.25);
 
           // delay(1000);
-          RoArmM2_allJointAbsCtrl(0.058, 0.96, 2.84, 1.15, 0, 20);
+          RoArmM2_allJointAbsCtrl(0.03, 0.82, 2.77, 1.30, 0, 20);
+          // RoArmM2_singleJointAbsCtrl(1,0.03,0,0);
+          // RoArmM2_singleJointAbsCtrl(2,0.82,0,0);
+          // RoArmM2_singleJointAbsCtrl(3,2.77,0,0);
+          // RoArmM2_singleJointAbsCtrl(EOAT_JOINT,1.30,0,0);
 
           break;
         case 2:
 
-          MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_2_inputX_Left_Scan, 0, Shelve_Left_2_inputZ_Left_Scan, 0.25);
-          // RoArmM2_allJointAbsCtrl(0, -0.275, 3.01, 2.2, 0, 20); // Rad显示参数和贝塞尔曲线的结果是一致的，坐标不一致
+          // MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_2_inputX_Left_Scan, 0, Shelve_Left_2_inputZ_Left_Scan, 0.25);
+          // MY_RoArmM2_allPosAbsBesselCtrl(140, 0, 100, 0.25);
+          // delay(1000);
+          RoArmM2_allJointAbsCtrl(0, -0.26, 2.92, 2.25, 0, 20); // Rad显示参数和贝塞尔曲线的结果是一致的，坐标不一致
 
           // MY_RoArmM2_allPosAbsBesselCtrl(120, 0, 120, 0.25);
           break;
 
         case 3:
           // MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_3_inputX_Left_Scan, 0, Shelve_Left_3_inputZ_Left_Scan, 0.25);
-          RoArmM2_allJointAbsCtrl(0, -0.275, 3.01, 2.2, 0, 20); // Rad显示参数和贝塞尔曲线的结果是一致的，坐标不一致
+          RoArmM2_allJointAbsCtrl(0, -0.26, 2.92, 2.25, 0, 20); // Rad显示参数和贝塞尔曲线的结果是一致的，坐标不一致
           break;
         case 4:
           // MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_4_inputX_Left_Scan, 0, Shelve_Left_4_inputZ_Left_Scan, 0.25);
 
           // delay(1000);
-          RoArmM2_allJointAbsCtrl(0, -0.46, 1.53, 3.85, 0, 20); // Rad显示参数和贝塞尔曲线的结果是一致的，坐标不一致
+          RoArmM2_allJointAbsCtrl(0, -0.38, 1.45, 3.85, 0, 20); // Rad显示参数和贝塞尔曲线的结果是一致的，坐标不一致
         default:
           break;
         }
@@ -122,7 +127,8 @@ void Task1code(void *pvParameters)
         case 1:
           // RoArmM2_allJointAbsCtrl(0, 0.46, 3.08, 1.44, 0, 10); // Rad显示参数和贝塞尔曲线的结果是一致的，坐标不一致
           // RoArmM2_allJointAbsCtrl(0.05, 0.76, 2.99, 1.24, 0, 10);
-          MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_1_inputX_Left_Scan , 3, Shelve_Left_1_inputZ_Left_Scan, 0.25);
+          // MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_1_inputX_Left_Scan , 3, Shelve_Left_1_inputZ_Left_Scan, 0.25);
+          RoArmM2_allJointAbsCtrl(0.03, 0.82, 2.77, 1.30, 0, 20);
           if (GF_time >= 300)
           {
             Grab_Record = 0;
@@ -132,7 +138,7 @@ void Task1code(void *pvParameters)
 
           break;
         case 2:
-          RoArmM2_allJointAbsCtrl(0, -0.275, 3.01, 2.2, 0, 20); // Rad显示参数和贝塞尔曲线的结果是一致的，坐标不一致
+          RoArmM2_allJointAbsCtrl(0, -0.26, 2.92, 2.25, 400, 20); // Rad显示参数和贝塞尔曲线的结果是一致的，坐标不一致
           if (GF_time >= 300)
           {
             Grab_Record = 0;
@@ -143,7 +149,7 @@ void Task1code(void *pvParameters)
           break;
 
         case 3:
-          RoArmM2_allJointAbsCtrl(0, -0.275, 3.01, 2.2, 0, 20); // Rad显示参数和贝塞尔曲线的结果是一致的，坐标不一致
+          RoArmM2_allJointAbsCtrl(0, -0.26, 2.92, 2.25, 0, 20); // Rad显示参数和贝塞尔曲线的结果是一致的，坐标不一致
           if (GF_time >= 300)
           {
             Grab_Record = 0;
@@ -152,7 +158,7 @@ void Task1code(void *pvParameters)
           }
           break;
         case 4:
-          RoArmM2_allJointAbsCtrl(0, -0.46, 1.53, 3.92, 0, 20); // Rad显示参数和贝塞尔曲线的结果是一致的，坐标不一致
+          RoArmM2_allJointAbsCtrl(0, -0.38, 1.45, 3.85, 0, 20); // Rad显示参数和贝塞尔曲线的结果是一致的，坐标不一致
           if (GF_time >= 300)
           {
             Grab_Record = 0;
@@ -183,15 +189,15 @@ void Task1code(void *pvParameters)
       //     test_flag = 1;
       //   }
       // }
-      // if (test_time >= 1000)
-      // {
+      if (test_time >= 1000)
+      {
 
-      //   Camera_XYZ(0, 0, 0, 140);
-      //   Grab_Cargo_2();
-      //   CARGO_LEFT_Flag = 0;
-      //   Grab_Record = 1; // 调整Wrist水平
-      //   test_time=0;
-      // }
+        Camera_XYZ(0, 0, 0, 140);
+        Grab_Cargo_1();
+        CARGO_LEFT_Flag = 0;
+        Grab_Record = 1; // 调整Wrist水平
+        test_time=0;
+      }
 
       break;
     case SHIFT_L2R: // 左向右自旋
@@ -380,18 +386,18 @@ void setup()
     screenLine_2 = "Bus servos: " +
                    servoFeedback[BASE_SERVO_ID - 11].status +
                    servoFeedback[SHOULDER_DRIVING_SERVO_ID - 11].status +
-                   servoFeedback[SHOULDER_DRIVEN_SERVO_ID - 11].status +
+                  //  servoFeedback[SHOULDER_DRIVEN_SERVO_ID - 11].status +
                    servoFeedback[ELBOW_SERVO_ID - 11].status +
                    servoFeedback[GRIPPER_SERVO_ID - 11].status;
   }
 
   RoArmM2_resetPID();
-  RoArmM2_moveInit();
+  // RoArmM2_moveInit();
 
   RoArmM2_dynamicAdaptation(0, ST_TORQUE_MAX, ST_TORQUE_MAX, ST_TORQUE_MAX, ST_TORQUE_MAX); // 自动外力适应
 
-  // createMission("boot", "these cmds run automatically at boot.");
-  // missionPlay("boot", 1);
+  createMission("boot", "these cmds run automatically at boot.");
+  missionPlay("boot", 1);
 
   // 创建任务
   xTaskCreatePinnedToCore(

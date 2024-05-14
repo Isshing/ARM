@@ -75,9 +75,6 @@ bool runNewJsonCmd = false;
 #define ARM_SERVO_BASE_MIN_POS_LEFT      2600 //往右
 #define ARM_SERVO_BASE_MAX_POS_LEFT      1450 //往左
 
-#define ARM_SERVO_BASE_INIT_POS_RIGHT     0
-#define ARM_SERVO_BASE_MIN_POS_RIGHT      2050
-#define ARM_SERVO_BASE_MAX_POS_RIGHT      2050
 
 // #define ARM_SERVO_SHOULDER_INIT_POS  1500 //变小逆时针   2030
 #define ARM_SERVO_SHOULDER_INIT_POS  1960 //变小逆时针   2030
