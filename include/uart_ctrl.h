@@ -36,7 +36,7 @@ void jsonCmdReceiveHandler()
 		}
 		else if (Shelve_Layer == 3)
 		{
-			Grab_Cargo_2();
+			Grab_Cargo_3();
 		}
 		else if (Shelve_Layer == 4)
 		{
@@ -59,6 +59,7 @@ void jsonCmdReceiveHandler()
 		Serial.print("CMD\n"); // 发送接收完成应答
 		ARM_MODE = SHIFT_L2R;
 		SHIFT_L2R_Flag = 0;
+		Shift_L2R_Record = 0;
 		receive_cmd_flag = 1;
 		break;
 

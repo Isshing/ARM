@@ -77,7 +77,8 @@ bool runNewJsonCmd = false;
 
 
 // #define ARM_SERVO_SHOULDER_INIT_POS  1500 //变小逆时针   2030
-#define ARM_SERVO_SHOULDER_INIT_POS  1960 //变小逆时针   2030
+#define ARM_SERVO_SHOULDER_DRIVING_INIT_POS  1910 //变小逆时针   2030   2047 -87
+#define ARM_SERVO_SHOULDER__DRIVEN_INIT_POS  2184 //变小逆时针   2030
 // #define ARM_SERVO_ELBOW_INIT_POS     2550 //变大Z-轴往下  1955
 #define ARM_SERVO_ELBOW_INIT_POS     1940 //变大Z-轴往下  1955
 #define ARM_SERVO_WRIST_INIT_POS     2047
@@ -110,7 +111,7 @@ bool runNewJsonCmd = false;
 #define Shelve_Left_3_inputX_Left_Scan     58
 #define Shelve_Left_3_inputZ_Left_Scan     60
 //左货架第四层识别动作
-#define Shelve_Left_4_inputX_Left_Scan     120
+#define Shelve_Left_4_inputX_Left_Scan     70
 #define Shelve_Left_4_inputZ_Left_Scan     350
 
 //货物放置动作

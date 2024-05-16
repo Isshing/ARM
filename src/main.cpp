@@ -113,14 +113,17 @@ void Task1code(void *pvParameters)
           break;
         case 4:
           // MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_4_inputX_Left_Scan, 0, Shelve_Left_4_inputZ_Left_Scan, 0.25);
-
+          
+          
+          // MY_RoArmM2_allPosAbsBesselCtrl(130, 0, Shelve_Left_4_inputZ_Left_Scan, 0.36);
           // delay(1000);
-          RoArmM2_allJointAbsCtrl(0, -0.38, 1.45, 3.85-0.1, 0, 20); // Rad显示参数和贝塞尔曲线的结果是一致的，坐标不一致
+          RoArmM2_allJointAbsCtrl(0, -0.56, 1.55, 3.85, 0, 20); // Rad显示参数和贝塞尔曲线的结果是一致的，坐标不一致
         default:
           break;
         }
         CARGO_LEFT_Flag = 1;
       }
+
 
       if (Grab_Record == 1)
       {
@@ -164,7 +167,7 @@ void Task1code(void *pvParameters)
           }
           break;
         case 4:
-          RoArmM2_allJointAbsCtrl(0, -0.38, 1.45, 3.85-0.1, 0, 20); // Rad显示参数和贝塞尔曲线的结果是一致的，坐标不一致
+          RoArmM2_allJointAbsCtrl(0, -0.56, 1.55, 3.85, 0, 20); // Rad显示参数和贝塞尔曲线的结果是一致的，坐标不一致
           if (GF_time >= 200)
           {
             Grab_Record = 0;
@@ -234,6 +237,7 @@ void Task1code(void *pvParameters)
           {
             SHIFT_L2R_time = 0;
             SHIFT_L2R_Flag = 1;
+            Shift_R2L_Record = 0;
             Serial.print("O\n"); // 发送旋转完成信号
             Serial.print("O\n"); // 发送旋转完成信号
 
@@ -261,11 +265,11 @@ void Task1code(void *pvParameters)
           if (SHIFT_R2L_time < 200)
           {
             GRAB_ServoCtrl(130);
-            RoArmM2_allJointAbsCtrl(-M_PI + 0.01, 0, M_PI / 10, M_PI, 0, 10); // 抬高
+            RoArmM2_allJointAbsCtrl(-M_PI + 0.01, 0, M_PI / 10, M_PI, 0, 20); // 抬高
           }
           else if (SHIFT_R2L_time >= 200 && SHIFT_R2L_time < 400)
           {
-            RoArmM2_allJointAbsCtrl(0, 0, M_PI / 10, M_PI, 0, 10); // 基座回去
+            RoArmM2_allJointAbsCtrl(0, 0, M_PI / 10, M_PI, 0, 20); // 基座回去
           }
           else if (SHIFT_R2L_time >= 400 && SHIFT_R2L_time < 700)
           {
