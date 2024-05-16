@@ -7,6 +7,7 @@ extern char SHIFT_R2L_Flag;
 extern char SHIFT_L2R_Flag;
 extern char Grab_Record;
 extern int Shelve_Layer; //当前层数
+extern char Shift_L2R_Record;
 
 void jsonCmdReceiveHandler()
 {
@@ -48,6 +49,7 @@ void jsonCmdReceiveHandler()
 		break;
 	case CMD_OCR_FINISH:	   // OCR识别完成
 		Serial.print("CMD\n"); // 发送接收完成应答
+		Shift_L2R_Record = 1;
 		ARM_MODE = SHIFT_R2L;  // 转回去
 		SHIFT_R2L_Flag = 0;
 		receive_cmd_flag = 1;

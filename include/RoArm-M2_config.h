@@ -85,8 +85,9 @@ bool runNewJsonCmd = false;
 #define ARM_SERVO_GRAB_INIT_POS     30  
 #define ARM_SERVO_GRAB_MIN_POS      30  //变小张开
 #define ARM_SERVO_GRAB_MAX_POS      130  //变大闭合
+#define ARM_SERVO_GRAB_PRE          90   //抓之前提前收缩大小
 
-
+#define Shelf_offset_inputX   0   //因为货物在货架内的深度不确定，要实地调整
 
 // 长度
 #define ARM_L1_LENGTH_MM    126.06
@@ -118,6 +119,8 @@ bool runNewJsonCmd = false;
 #define PLACE_Left_inputZ     140
 
 
+
+
 enum ARM_State
 {
       CARGO_LEFT=1,   //左货架抓取状态
@@ -126,9 +129,7 @@ enum ARM_State
 	  SHINK,   //收缩状态
 };
 
-ARM_State ARM_MODE = CARGO_LEFT;
-
-
+ARM_State ARM_MODE = SHINK;
 
 
 // 	  TYPE:0
