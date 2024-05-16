@@ -102,14 +102,14 @@ void Task1code(void *pvParameters)
           // MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_2_inputX_Left_Scan, 0, Shelve_Left_2_inputZ_Left_Scan, 0.25);
           // MY_RoArmM2_allPosAbsBesselCtrl(140, 0, 100, 0.25);
           // delay(1000);
-          RoArmM2_allJointAbsCtrl(0, -0.26, 2.92, 2.25, 0, 20); // Rad显示参数和贝塞尔曲线的结果是一致的，坐标不一致
+          RoArmM2_allJointAbsCtrl(0, -0.26, 2.92, 2.15, 0, 20); // Rad显示参数和贝塞尔曲线的结果是一致的，坐标不一致
 
           // MY_RoArmM2_allPosAbsBesselCtrl(120, 0, 120, 0.25);
           break;
 
         case 3:
           // MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_3_inputX_Left_Scan, 0, Shelve_Left_3_inputZ_Left_Scan, 0.25);
-          RoArmM2_allJointAbsCtrl(0, -0.26, 2.92, 2.25, 0, 20); // Rad显示参数和贝塞尔曲线的结果是一致的，坐标不一致
+          RoArmM2_allJointAbsCtrl(0, -0.26, 2.92, 2.15, 0, 20); // Rad显示参数和贝塞尔曲线的结果是一致的，坐标不一致
           break;
         case 4:
           // MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_4_inputX_Left_Scan, 0, Shelve_Left_4_inputZ_Left_Scan, 0.25);
@@ -145,7 +145,7 @@ void Task1code(void *pvParameters)
 
           break;
         case 2:
-          RoArmM2_allJointAbsCtrl(0, -0.26, 2.92, 2.25, 400, 20); // Rad显示参数和贝塞尔曲线的结果是一致的，坐标不一致
+          RoArmM2_allJointAbsCtrl(0, -0.26, 2.92, 2.15, 400, 20); // Rad显示参数和贝塞尔曲线的结果是一致的，坐标不一致
           if (GF_time >= 200)
           {
             Grab_Record = 0;
@@ -157,7 +157,7 @@ void Task1code(void *pvParameters)
           break;
 
         case 3:
-          RoArmM2_allJointAbsCtrl(0, -0.26, 2.92, 2.25, 0, 20); // Rad显示参数和贝塞尔曲线的结果是一致的，坐标不一致
+          RoArmM2_allJointAbsCtrl(0, -0.26, 2.92, 2.15, 0, 20); // Rad显示参数和贝塞尔曲线的结果是一致的，坐标不一致
           if (GF_time >= 200)
           {
             Grab_Record = 0;

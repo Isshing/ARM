@@ -1913,7 +1913,7 @@ void Grab_Cargo_2(void)
   Grab_Flag = 0;
   // MY_RoArmM2_allPosAbsBesselCtrl(PLACE_Left_inputX, Camera_Input_Y / 2, PLACE_Left_inputZ, 0.30);
   // delay(100);
-  MY_RoArmM2_allPosAbsBesselCtrl(PLACE_Left_inputX, PLACE_Left_inputY, PLACE_Left_inputZ, 0.36);
+  MY_RoArmM2_allPosAbsBesselCtrl(PLACE_Left_inputX-10, PLACE_Left_inputY, PLACE_Left_inputZ, 0.36);
   // 上升高度,
   // MY_RoArmM2_allPosAbsBesselCtrl(PLACE_Left_inputX, PLACE_Left_inputY / 2, PLACE_Left_inputZ, 0.36);
   // delay(100);
@@ -1930,7 +1930,7 @@ void Grab_Cargo_2(void)
   // delay(100);
   // 高度恢复检视状态
   // MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_2_inputX_Left_Scan, 0, Shelve_Left_2_inputZ_Left_Scan, 0.36);
-  RoArmM2_allJointAbsCtrl(0, -0.26, 2.92, 2.25, 0, 20); // Rad显示参数和贝塞尔曲线的结果是一致的，坐标不一致
+  RoArmM2_allJointAbsCtrl(0, -0.26, 2.92, 2.15, 0, 20); // Rad显示参数和贝塞尔曲线的结果是一致的，坐标不一致
 }
 
 void Grab_Cargo_3(void)
@@ -1988,7 +1988,7 @@ void Grab_Cargo_3(void)
   // delay(100);
   // 高度恢复检视状态
   // MY_RoArmM2_allPosAbsBesselCtrl(Shelve_Left_2_inputX_Left_Scan, 0, Shelve_Left_2_inputZ_Left_Scan, 0.36);
-  RoArmM2_allJointAbsCtrl(0, -0.26, 2.92, 2.25, 0, 20); // Rad显示参数和贝塞尔曲线的结果是一致的，坐标不一致
+  RoArmM2_allJointAbsCtrl(0, -0.26, 2.92, 2.15, 0, 20); // Rad显示参数和贝塞尔曲线的结果是一致的，坐标不一致
 }
 
 void Grab_Cargo_4(void)
